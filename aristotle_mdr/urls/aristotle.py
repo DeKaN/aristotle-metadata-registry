@@ -2,8 +2,6 @@ from django.conf.urls import url
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 
-from django.contrib.auth.decorators import login_required
-
 from haystack.views import search_view_factory
 
 import aristotle_mdr.views as views
@@ -128,26 +126,26 @@ urlpatterns=[
     # url(r'^remove/WorkgroupUser/(?P<iid>\d+)/(?P<userid>\d+)$', views.removeWorkgroupUser, name='removeWorkgroupUser'),
 
     url(r'^account/?$', RedirectView.as_view(url='account/home/', permanent=True)),
-    url(r'^account/home/?$', views.user_pages.home, name='userHome'),
+    url(r'^account/home/?$', views.user_pages.HomeView.as_view(), name='userHome'),
     url(r'^account/sandbox/?$', views.user_pages.CreatedItemsListView.as_view(), name='userSandbox'),
-    url(r'^account/roles/?$', views.user_pages.roles, name='userRoles'),
-    url(r'^account/admin/?$', views.user_pages.admin_tools, name='userAdminTools'),
-    url(r'^account/admin/statistics/?$', views.user_pages.admin_stats, name='userAdminStats'),
-    url(r'^account/edit/?$', views.user_pages.edit, name='userEdit'),
-    url(r'^account/recent/?$', views.user_pages.recent, name='userRecentItems'),
-    url(r'^account/favourites/?$', views.user_pages.favourites, name='userFavourites'),
-    url(r'^account/reviews/?$', views.user_pages.my_review_list, name='userMyReviewRequests'),
+    url(r'^account/roles/?$', views.user_pages.RolesView.as_view(), name='userRoles'),
+    url(r'^account/admin/?$', views.user_pages.AdminToolsView.as_view(), name='userAdminTools'),
+    url(r'^account/admin/statistics/?$', views.user_pages.AdminStatsView.as_view(), name='userAdminStats'),
+    url(r'^account/edit/?$', views.user_pages.EditView.as_view(), name='userEdit'),
+    url(r'^account/recent/?$', views.user_pages.RecentView.as_view(), name='userRecentItems'),
+    url(r'^account/favourites/?$', views.user_pages.FavouritesView.as_view(), name='userFavourites'),
+    url(r'^account/reviews/?$', views.user_pages.MyReviewListView.as_view(), name='userMyReviewRequests'),
     url(r'^account/reviews/cancel/(?P<review_id>\d+)/?$', views.actions.ReviewCancelView.as_view(), name='userReviewCancel'),
-    url(r'^account/workgroups/?$', views.user_pages.workgroups, name='userWorkgroups'),
-    url(r'^account/workgroups/archives/?$', views.user_pages.workgroup_archives, name='user_workgroups_archives'),
-    url(r'^account/notifications(?:/folder/(?P<folder>all))?/?$', views.user_pages.inbox, name='userInbox'),
+    url(r'^account/workgroups/?$', views.user_pages.WorkgroupsView.as_view(), name='userWorkgroups'),
+    url(r'^account/workgroups/archives/?$', views.user_pages.ArchivedWorkkgroupsView.as_view(), name='user_workgroups_archives'),
+    url(r'^account/notifications(?:/folder/(?P<folder>all))?/?$', views.user_pages.InboxView.as_view(), name='userInbox'),
 
-    url(r'^account/django/(.*)?$', views.user_pages.django_admin_wrapper, name='django_admin'),
+    url(r'^account/django/(.*)?$', views.user_pages.DjangoAdminWrapperView.as_view(), name='django_admin'),
 
 
     url(r'^action/review/(?P<iid>\d+)?$', views.actions.SubmitForReviewView.as_view(), name='request_review'),
-    url(r'^account/registrartools/?$', views.user_pages.registrar_tools, name='userRegistrarTools'),
-    url(r'^account/registrartools/review/?$', views.user_pages.review_list, name='userReadyForReview'),
+    url(r'^account/registrartools/?$', views.user_pages.RegistrarToolsView.as_view(), name='userRegistrarTools'),
+    url(r'^account/registrartools/review/?$', views.user_pages.ReviewListView.as_view(), name='userReadyForReview'),
     url(r'^account/registrartools/review/details/(?P<review_id>\d+)/?$', views.user_pages.ReviewDetailsView.as_view(), name='userReviewDetails'),
     url(r'^account/registrartools/review/accept/(?P<review_id>\d+)/?$', views.actions.ReviewAcceptView.as_view(), name='userReviewAccept'),
     url(r'^account/registrartools/review/reject/(?P<review_id>\d+)/?$', views.actions.ReviewRejectView.as_view(), name='userReviewReject'),

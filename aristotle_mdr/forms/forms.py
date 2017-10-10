@@ -1,18 +1,23 @@
 from __future__ import division
 
-from django import forms
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
 from bootstrap3_datetime.widgets import DateTimePicker
+from django import forms
+from django.contrib.auth.models import User
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 import aristotle_mdr.models as MDR
-from aristotle_mdr.perms import user_can_edit, user_can_view
-from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.autocomplete import widgets
+from aristotle_mdr.forms.creation_wizards import UserAwareForm
+from aristotle_mdr.perms import user_can_edit
 
 
-class UserSelfEditForm(forms.Form):
+class UserSelfEditForm(forms.ModelForm):
     template = "aristotle_mdr/userEdit.html"
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
 
     first_name = forms.CharField(required=False, label=_('First Name'))
     last_name = forms.CharField(required=False, label=_('Last Name'))
@@ -70,7 +75,7 @@ class SupersedeForm(forms.Form):
         self.user = kwargs.pop('user')
         super(SupersedeForm, self).__init__(*args, **kwargs)
 
-        self.fields['newerItem']=forms.ModelChoiceField(
+        self.fields['newerItem'] = forms.ModelChoiceField(
             queryset=self.qs,
             empty_label="None",
             label=_("Superseded by"),
@@ -114,7 +119,7 @@ class ChangeStatusForm(UserAwareForm):
 
     def add_registration_authority_field(self):
         ras = [(ra.id, ra.name) for ra in self.user.profile.registrarAuthorities]
-        self.fields['registrationAuthorities']=forms.MultipleChoiceField(
+        self.fields['registrationAuthorities'] = forms.MultipleChoiceField(
             label="Registration Authorities",
             choices=ras,
             widget=forms.CheckboxSelectMultiple
@@ -179,7 +184,7 @@ class CompareConceptsForm(forms.Form):
             required=True,
             widget=widgets.ConceptAutocompleteSelect()
         )
-        self.fields['item_b']=forms.ModelChoiceField(
+        self.fields['item_b'] = forms.ModelChoiceField(
             queryset=self.qs,
             empty_label="None",
             label=_("Second item"),

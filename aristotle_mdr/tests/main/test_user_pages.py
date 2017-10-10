@@ -111,9 +111,9 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
 
         # A view is not a superuser
         response = self.client.get(reverse('aristotle:userAdminTools',))
-        self.assertEqual(response.status_code,403)
+        self.assertEqual(response.status_code,302)
         response = self.client.get(reverse('aristotle:userAdminStats',))
-        self.assertEqual(response.status_code,403)
+        self.assertEqual(response.status_code,302)
         self.logout()
 
 
