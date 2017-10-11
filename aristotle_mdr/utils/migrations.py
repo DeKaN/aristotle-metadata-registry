@@ -4,9 +4,10 @@ At some point, we will squash the entire migration path for <1.4 and remove this
 running this code.
 """
 from django.db import migrations, models
-import ckeditor_uploader.fields
 
 from django.db.migrations.operations.base import Operation
+
+import ckeditor_uploader.fields
 
 
 class classproperty(object):
@@ -16,6 +17,63 @@ class classproperty(object):
 
     def __get__(self, owner_self, owner_cls):
         return self.fget(owner_cls)
+
+
+def create_uuid_objects(app_label, model_name, migrate_self=True):
+    def inner(apps, schema_editor):
+        from aristotle_mdr.models import UUID, baseAristotleObject
+        from django.apps import apps as apppps
+        from django.contrib.contenttypes.models import ContentType
+
+        object_type = apppps.get_model(app_label, model_name)
+        if not issubclass(object_type, baseAristotleObject):
+            return
+
+        for ct in ContentType.objects.all():
+            kls = ct.model_class()
+            if kls is None:
+                # Uninstalled app
+                continue
+            if not issubclass(kls, baseAristotleObject):
+                continue
+            if not issubclass(kls, object_type):
+                continue
+            if kls is object_type and not migrate_self:
+                continue
+
+            for instance in kls.objects.all():
+                details = dict(
+                    app_label=instance._meta.app_label,
+                    model_name=instance._meta.model_name,
+                )
+
+                u, c = UUID.objects.get_or_create(
+                    uuid=instance.uuid_id,
+                    defaults=details
+                )
+                if issubclass(kls, object_type) and kls is not object_type:
+                    u.app_label=instance._meta.app_label
+                    u.model_name=instance._meta.model_name
+                    u.save()
+
+    return inner
+
+
+class DBOnlySQL(migrations.RunSQL):
+
+    reversible = True
+
+    def __init__(self, *args, **kwargs):
+        self.vendor = kwargs.pop('vendor')
+        super(DBOnlySQL, self).__init__(*args, **kwargs)
+
+    def database_forwards(self, app_label, schema_editor, from_state, to_state):
+        if schema_editor.connection.vendor == self.vendor:
+            return super(DBOnlySQL, self).database_forwards(app_label, schema_editor, from_state, to_state)
+
+    def database_backwards(self, app_label, schema_editor, from_state, to_state):
+        if schema_editor.connection.vendor == self.vendor:
+            return super(DBOnlySQL, self).database_backwards(app_label, schema_editor, from_state, to_state)
 
 
 class MoveConceptFields(Operation):

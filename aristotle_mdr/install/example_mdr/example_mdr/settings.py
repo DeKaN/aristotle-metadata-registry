@@ -105,15 +105,17 @@ ARISTOTLE_SETTINGS.update({
     'CONTENT_EXTENSIONS' : [ #Extensions that add additional object types for search/display.
             #!aristotle_dse! 'aristotle_dse',
             #!aristotle_glossary! 'aristotle_glossary',
-        ]
-    })
+        ],
+    "DOWNLOADERS": [
+        ('pdf', 'PDF', 'fa-file-pdf-o', 'aristotle_pdf', 'Downloads for various content types in the PDF format'),
+        ('csv-vd', 'CSV list of values', 'fa-file-excel-o', 'aristotle_mdr', 'CSV downloads for value domain codelists'),
+        ##!aristotle_ddi_utils!    ('ddi3.2','DDI 3.2','fa-file-code-o','aristotle_ddi_utils'),
+    ],
+})
 # Specified the agency to use when outputing items in the DDI XML format.
 #!aristotle_ddi_utils!ARISTOTLE_DDI_AGENCY = "demo.ddi.aristotle_mdr"
 
 # This option gives a site the ability to register the different download options available for the site
 # This invoked in templates using the aristotle template tag "downloadMenu"
-ARISTOTLE_DOWNLOADS = ARISTOTLE_DOWNLOADS + [
-##!aristotle_ddi_utils!    ('ddi3.2','DDI 3.2','fa-file-code-o','aristotle_ddi_utils'),
-    ]
 
 #

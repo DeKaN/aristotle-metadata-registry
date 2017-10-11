@@ -11,14 +11,14 @@ Registering a bulk action
 
 The ``BULK_ACTIONS`` :doc:`setting <../extensions/bulk_actions>` in the 
 in the ``ARISTOTLE_SETTINGS`` dictionary stores the register of bulk actions
-used for generating lists. Adding a name for the action and the qualified path
+used for generating lists of actions. Adding the qualified path
 to the form is sufficient to register a new bulk action.
-For example this set in ``ARISTOTLE_SETTINGS`` would register an action called
-``my_action`` with the Python location ``module.forms.MyBulkAction``::
+For example this set in ``ARISTOTLE_SETTINGS`` would register an action int Python
+module ``module.forms.MyBulkAction``::
 
-    'BULK_ACTIONS': {
-        'my_action':'module.forms.MyBulkActionForm',
-        }
+    'BULK_ACTIONS': [
+        'module.forms.MyBulkActionForm',
+    ]
 
 Writing a functional bulk action
 --------------------------------

@@ -13,6 +13,9 @@ setup_test_environment()
 
 class TestSlotsPagesLoad(utils.LoggedInViewPages, TestCase):
     def test_similar_slots_page(self):
+        # from django.conf import settings
+        # from django.utils.module_loading import import_string
+        # conf = import_string(settings.ROOT_URLCONF)
 
         slot_name = 'my_slot_name'
         slot_type = ''
@@ -82,7 +85,7 @@ class TestSlotsBulkAction(BulkActionsTest, TestCase):
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
-                'bulkaction': 'add_slots',
+                'bulkaction': 'aristotle_mdr.contrib.slots.forms.BulkAssignSlotsForm',
                 'items': [self.item1.id, self.item2.id],
                 'slot_name': self.slot_name,
                 'slot_type': self.slot_type,
@@ -102,7 +105,7 @@ class TestSlotsBulkAction(BulkActionsTest, TestCase):
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
-                'bulkaction': 'add_slots',
+                'bulkaction': 'aristotle_mdr.contrib.slots.forms.BulkAssignSlotsForm',
                 'items': [self.item1.id, self.item4.id, self.item5.id],
                 'slot_name': self.slot_name,
                 'slot_type': self.slot_type,

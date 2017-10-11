@@ -1,8 +1,11 @@
 {% load i18n aristotle_tags %}
-<form action="#" method="get">
-    <label for="filter">{% trans 'Filter workgroups by name and description' %}</label>
-    <input name="filter" value="{{filter}}">
+<form class="form-inline" action="#" method="get">
+  <div class="form-group">
+    <label for="id_filter">{% trans 'Filter workgroups by name and description' %}</label>
+    <input id="id_filter" name="filter" class="form-control" value="{{filter}}">
     <input name="sort" type="hidden" value="{{sort}}">
+  </div>
+  <button type="submit" class="btn btn-default">Fliter</button>
 </form>
 
 {% if page.has_other_pages %}
@@ -22,9 +25,7 @@ Showing {{ page.paginator.count }} results.
             <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort"></i></a>
             {% endif %}
         </th>
-        <th>{% trans 'Ownership' %}
-        </th>
-        <th>{% trans 'Registration Authorities' %}
+        <th>{% trans 'Definition' %}
         </th>
         <th>
         {% if sort == "users_asc" %}
@@ -46,26 +47,31 @@ Showing {{ page.paginator.count }} results.
         {% endif %}
             <i class="fa fa-file" title="{% trans 'Number of items' %}"></i>
         </th>
-
+        {% if show_all %}
+        <th>{% trans "Status" %}</th>
+        {% endif %}
+        <th></th>
     </tr>
 </thead>
 <tbody>
     {% for item in page %}
     <tr>
         <td>
-            <a href="{% url 'aristotle:workgroup' item.id %}">{{ item.name }}</a>
-            <span>{{ item.definition|striptags|safe|truncatewords:15 }}</span>
+            <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
         </td>
-        <td>{{ item.get_ownership_display }}</td>
-        <td>{% if item.registrationAuthorities %}
-            <ul>{% for ra in item.registrationAuthorities.all %}
-            <li>{{ ra.name }}</li>
-            {% endfor %}</ul>
-            {% else %}
-            <em>{% trans 'None' %}</em>
-            {% endif %}</td>
+        <td>{{ item.definition|striptags|safe|truncatewords:50 }}</td>
         <td>{{ item.members.count }}</td>
         <td>{{ item.items.count }}</td>
+        {% if show_all %}
+        <td>
+            {% if item.archived %}
+                {% trans "Archived" %}
+            {% else %}
+                {% trans "Active" %}
+            {% endif %}
+        </td>
+        {% endif %}
+        <td><a class="btn btn-primary btn-small" href="{% url 'aristotle:workgroup_edit' item.pk %}">Edit</a></td>
     </tr>
     {% endfor %}
 

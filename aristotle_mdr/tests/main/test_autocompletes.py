@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.test import TestCase, override_settings
 from django.test.utils import setup_test_environment
@@ -73,15 +73,15 @@ class LoggedInConceptAutocompletes(utils.LoggedInViewPages, TestCase):
 class LoggedInUserAutocompletes(utils.LoggedInViewPages, TestCase):
     def setUp(self, *args, **kwargs):
         super(LoggedInUserAutocompletes, self).setUp(*args, **kwargs)
-        before_count = User.objects.all().count()
+        before_count = get_user_model().objects.all().count()
         self.dwarves = ["Doc","Grumpy","Happy","Sleepy","Bashful","Sneezy","Dopey"]
 
         self.dwarf_users = [
-            User.objects.create(username=dwarf, email="%s@dwarves.mine"%dwarf.lower())
+            get_user_model().objects.create(username=dwarf, email="%s@dwarves.mine"%dwarf.lower())
             for dwarf in self.dwarves
         ]
 
-        self.assertEqual(User.objects.all().count()-before_count, len(self.dwarf_users))
+        self.assertEqual(get_user_model().objects.all().count()-before_count, len(self.dwarf_users))
 
     def test_user_autocomplete_anon(self):
         response = self.client.get(
@@ -163,7 +163,7 @@ class LoggedInUserAutocompletes(utils.LoggedInViewPages, TestCase):
 
 
     def test_user_autocomplete_superuser(self):
-        num_users = User.objects.all().count()
+        num_users = get_user_model().objects.all().count()
         self.login_superuser()
         response = self.client.get(
             reverse("aristotle-autocomplete:user")

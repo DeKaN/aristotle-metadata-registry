@@ -13,7 +13,7 @@ from reversion.models import Revision
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import fetch_aristotle_settings
+from aristotle_mdr.utils import fetch_aristotle_settings, fetch_metadata_apps
 from aristotle_mdr.views.utils import paginate_sort_opts, paginate_workgroup_sort_opts
 
 
@@ -119,7 +119,7 @@ class AdminToolsView(LoginRequiredMixin, SuperuserRequiredMixin, UserContextMixi
                     (
                         m.model_class(),
                         _get_cached_object_count(m),
-                        reverse("admin:%s_%s_changelist" % (m.app_label, m.model))
+                        reverse("browse_concepts", args=[m.app_label, m.model])
                     )
                 )
                 model_stats[m.app_label] = app_models
@@ -138,7 +138,7 @@ class AdminStatsView(LoginRequiredMixin, SuperuserRequiredMixin, UserContextMixi
         return super(AdminStatsView, self).get_context_data(**kwargs)
 
     def get_object(self, queryset=None):
-        aristotle_apps = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', []) + ["aristotle_mdr"]
+        aristotle_apps = fetch_metadata_apps()
         models = ContentType.objects.filter(app_label__in=aristotle_apps).all()
         model_stats = {}
 
@@ -184,7 +184,7 @@ class AdminStatsView(LoginRequiredMixin, SuperuserRequiredMixin, UserContextMixi
                             't7': t7_val,
                             't30': t30_val
                         },
-                        reverse("admin:%s_%s_changelist" % (m.app_label, m.model))
+                        reverse("browse_concepts", args=[m.app_label, m.model])
                     )
                 )
                 model_stats[m.app_label] = app_models
@@ -215,7 +215,6 @@ class FavouritesView(LoginRequiredMixin, ListView):
         kwargs.update({
             'help': self.request.GET.get('help', False),
             'favourite': self.request.GET.get('favourite', False),
-            'select_all_list_queryset_filter': 'favourited_by__user=user'  # no information leakage here.
         })
         return super(FavouritesView, self).get_context_data(**kwargs)
 
@@ -358,7 +357,7 @@ class WorkgroupsView(LoginRequiredMixin, ListView):
         return context
 
 
-class ArchivedWorkkgroupsView(WorkgroupsView):
+class ArchivedWorkgroupsView(WorkgroupsView):
     template_name = 'aristotle_mdr/user/userWorkgroupArchives.html'
 
     def get_workgroups(self):

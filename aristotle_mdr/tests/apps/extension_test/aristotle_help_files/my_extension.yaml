@@ -1,0 +1,7 @@
+- model: aristotle_mdr_help.helppage
+  fields:
+    title: My very specific help page
+    language: en
+    app_label: extension_test
+    body: >
+        my_extension has some help

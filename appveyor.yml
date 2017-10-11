@@ -9,18 +9,22 @@ environment:
   matrix:
       - DJANGO_VERSION: '1.8'
         DB: mssql
+        DATABASE_URL: mssql://sa:Password12!@(local)\SQL2016/master
         SEARCH: whoosh
         PYTHON_HOME: "C:/Python35"
       - DJANGO_VERSION: '1.8'
         DB: mssql
+        DATABASE_URL: mssql://sa:Password12!@(local)\SQL2016/master
         SEARCH: whoosh
         PYTHON_HOME: "C:/Python35-x64"
       - DJANGO_VERSION: '1.10'
         DB: mssql
+        DATABASE_URL: mssql://sa:Password12!@(local)\SQL2016/master
         SEARCH: whoosh
         PYTHON_HOME: "C:/Python35"
       - DJANGO_VERSION: '1.10'
         DB: mssql
+        DATABASE_URL: mssql://sa:Password12!@(local)\SQL2016/master
         SEARCH: whoosh
         PYTHON_HOME: "C:/Python35-x64"
 

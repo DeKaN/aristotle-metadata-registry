@@ -32,14 +32,21 @@ class AristotleBackend(ModelBackend):
         if app_label == "aristotle_mdr" and hasattr(perms, perm_name):
             return getattr(perms, perm_name)(user_obj, obj)
 
-        if app_label in extensions + ["aristotle_mdr"]:
+        from django.apps import apps
+        from aristotle_mdr.models import _concept
+
+        perm_parts = perm_name.split("_")
+        if len(perm_parts) == 2:
+            model = apps.get_model(app_label, perm_parts[1])
+        else:
+            model = int
+
+        if app_label in extensions + ["aristotle_mdr"] and issubclass(model, _concept):
             # This is required so that a user can correctly delete the 'concept' parent class in the admin site.
-            if perm_name == "delete_concept_from_admin":
-                return obj is None or perms.user_can_edit(user_obj, obj)
 
             # This is a rough catch all, and is designed to indicate a user could
             # delete an item type, but not a specific item.
-            elif (
+            if (
                 perm_name.startswith('delete_') or
                 perm_name.startswith('create_') or
                 perm_name.startswith('add_')
@@ -48,5 +55,34 @@ class AristotleBackend(ModelBackend):
                     return perms.user_is_editor(user_obj)
                 else:
                     return perms.user_can_edit(user_obj, obj)
+
+        if app_label in extensions + ["aristotle_mdr"]:
+            if perm_name == "delete_concept_from_admin":
+                return obj is None or perms.user_can_edit(user_obj, obj)
+
+        if perm == "aristotle_mdr.view_workgroup":
+            return perms.user_in_workgroup(user_obj, obj)
+        if perm == "aristotle_mdr.change_workgroup_memberships":
+            return perms.user_is_workgroup_manager(user_obj, obj)
+        if perm == "aristotle_mdr.change_workgroup":
+            return perms.user_is_workgroup_manager(user_obj, obj)
+        if perm == "aristotle_mdr.can_archive_workgroup":
+            return perms.user_is_workgroup_manager(user_obj, obj)
+
+        if perm == "aristotle_mdr.can_view_discussions_in_workgroup":
+            return perms.user_in_workgroup(user_obj, obj)
+        if perm == "aristotle_mdr.can_post_discussion_in_workgroup":
+            return perms.user_in_workgroup(user_obj, obj)
+        if perm == "aristotle_mdr.can_view_discussion_post":
+            return perms.user_in_workgroup(user_obj, obj.workgroup)
+
+        if perm == "aristotle_mdr.change_registrationauthority":
+            return perms.user_is_registation_authority_manager(user_obj, obj)
+        if perm == "aristotle_mdr.change_registrationauthority_memberships":
+            return perms.user_is_registation_authority_manager(user_obj, obj)
+
+        from aristotle_mdr.contrib.links import perms as link_perms
+        if perm == "aristotle_mdr_links.add_link":
+            return link_perms.user_can_make_link(user_obj)
 
         return super(AristotleBackend, self).has_perm(user_obj, perm, obj)

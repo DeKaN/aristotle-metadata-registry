@@ -98,8 +98,8 @@ class AristotleAutocompletes(utils.LoggedInViewPages, TestCase):
         # see also
         # tests.main.test_search.test_current_statuses_only_in_search_results_and_index
         
-        from django.contrib.auth.models import User
-        self.registrar = User.objects.create_user('stryker','william.styker@weaponx.mil','mutantsMustDie')
+        from django.contrib.auth import get_user_model
+        self.registrar = get_user_model().objects.create_user('stryker','william.styker@weaponx.mil','mutantsMustDie')
         self.ra.giveRoleToUser('registrar',self.registrar)
 
         self.logout()

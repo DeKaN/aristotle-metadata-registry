@@ -5,7 +5,7 @@
 {% block title %}Request review for multiple items{% endblock %}
 {% block content %}
 <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{next}}">{% csrf_token %}
-    <input type="hidden" name="bulkaction" value="request_review"/>
+    <input type="hidden" name="bulkaction" value="{{ bulk_action_title }}"/>
     <div class="modal-body">
         <header>This form allows you to request a registrar review this metadata for endorsement.
         </header>

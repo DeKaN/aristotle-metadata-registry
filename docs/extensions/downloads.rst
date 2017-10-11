@@ -1,47 +1,58 @@
 Adding new download formats
 ===========================
 
-While the Aristotle-MDR framework includes PDF download capability, it may be
+While the Aristotle-MDR framework has a PDF download extension, it may be
 desired to download metadata stored within a registry in a variety of download
 formats. Rather than include these within the Aristotle-MDR core codebase,
 additional download formats can be developed included via the download API.
 
 Creating a download module
---------------------------------------------
+---------------------------
 
-A download module is just a specialised Django app that includes a specific set
-of files for generating downloads. The files required in your app are:
+A download module is a specialised class, that sub-classes ``aristotle_mdr.downloader.DownloaderBase``
+and provides an appropriate ``download`` or ``bulk_download`` method.
+
+A download module is just a Django app that includes a specific set
+of files for generating downloads. The only files required in your app are:
 
 * ``__init__.py`` - to declare the app as a python module
-* ``downloader.py`` - for defining your main download method
+* ``downloader.py`` - where your download classes will be stored
 
 Other modules can be written, for example a download module may define models for
 recording a number of times an item is downloaded.
 
-Writing a ``downloader.py`` module
-----------------------------------
-Your ``downloader.py`` file must contain a register of download types and the metadata concept
-types which this module provides downloads for. This takes the form of a dictionary with keys
-being the download type provided, and the values define which concepts can be downloaded as
-that output format::
+Writing a ``metadata_register``
+-------------------------------
+Your downloader class must contain a register of download types and the metadata concept
+types which this module provides downloads for. This takes one of the following forms
+which define which concepts can be downloaded as in the output format::
 
-    item_register = {
-        'csv': {'aristotle_mdr': ['valuedomain']},
-        'xls': {'aristotle_mdr': ['__all__']},
-        'pdf': '__template__'
-        'txt': '__all__'
-    }
+    class CSVExample(DownloaderBase):
+        download_type = "csv"
+        metadata_register = {'aristotle_mdr': ['valuedomain']}
 
-Describing these options, this register specifies the following downloads:
+    class XLSExample(DownloaderBase):
+        download_type = "xls"
+        metadata_register = {'aristotle_mdr': ['__all__']}
+
+    class PDFExample(DownloaderBase):
+        download_type = "pdf"
+        metadata_register = '__template__'
+
+    class TXTExample(DownloaderBase):
+        download_type = "txt"
+        metadata_register = '__all__'
+
+Describing these options, these classes specifies the following downloads:
 
 * ``csv`` provides downloads for Value Domains in the Aristotle-MDR module
 * ``xls`` provides downloads for all metadata types in the Aristotle-MDR module
 * ``pdf`` provides downloads for items in all modules, only if they have a download template
 * ``txt`` provides downloads for all metadata types in all modules
 
-The download module must also define  a method with the following signature::
+Each download class must also define a class method with the following signature::
 
-    def download(request, download_type, item):
+    def download(cls, request, item):
 
 This is called from Aristotle-MDR when it catches a download type that has been
 registered for this module. The arguments are:
@@ -50,20 +61,16 @@ registered for this module. The arguments are:
   that was used to call the download view. The current user trying to download the
   item can be gotten by calling ``request.user``.
 
-* ``download_type`` - a short string used to differentiate different download formats
-
 * ``item`` - the item to be downloaded, as retrieved from the database.
 
 **Note:** If a download method is called the user has been verified to have
 permissions to view the requested item only. Permissions for other items will
 have to be checked within the download method.
 
-For an example of how to handle multiple download formats in a single module,
-review the ``aristotle_mdr.downloader`` module which provides downloads in the
-PDF and CSV format for various content types which is linked below:
+For more information see the ``DownloaderBase`` class below:
 
-.. automodule:: aristotle_mdr.downloader
-   :members: download
+.. autoclass:: aristotle_mdr.downloader.DownloaderBase
+   :members:
 
 
 How the ``download`` view works

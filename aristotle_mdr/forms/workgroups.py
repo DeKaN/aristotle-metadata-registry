@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 
 import aristotle_mdr.models as MDR
@@ -14,7 +14,7 @@ class AddMembers(forms.Form):
     )
     users = forms.ModelMultipleChoiceField(
         label=_("Select users"),
-        queryset=User.objects.filter(is_active=True),
+        queryset=get_user_model().objects.filter(is_active=True),
         widget=widgets.UserAutocompleteSelectMultiple()
     )
 

@@ -1,6 +1,7 @@
 from django import VERSION as django_version
 from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 
 import aristotle_mdr.models as MDR
@@ -31,7 +32,6 @@ class AristotleProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super(AristotleProfileForm, self).__init__(*args, **kwargs)
-        from django.contrib.auth.models import User  # paranoid about circular imports now
 
         # if self.instance and self.instance.user.count() == 1: # and self.instance.user.exists():
         try:
@@ -42,7 +42,7 @@ class AristotleProfileForm(forms.ModelForm):
             self.fields['steward_in'].initial = self.instance.user.steward_in.all()
             self.fields['submitter_in'].initial = self.instance.user.submitter_in.all()
             self.fields['viewer_in'].initial = self.instance.user.viewer_in.all()
-        except User.DoesNotExist:
+        except get_user_model().DoesNotExist:
             pass
 
     def save_memberships(self, user, *args, **kwargs):

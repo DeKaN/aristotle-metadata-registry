@@ -1,5 +1,4 @@
 from django.db.models import signals
-from django.contrib.auth.models import User
 import aristotle_mdr
 import sys
 from django.conf import settings

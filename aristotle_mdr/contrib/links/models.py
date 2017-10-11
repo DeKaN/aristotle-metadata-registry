@@ -27,6 +27,9 @@ class Relation(MDR.concept):  # 9.1.2.4
         validators=[MinValueValidator(2)],
         null=True
     )
+    serialize_weak_entities = [
+        ('roles', 'relationrole_set'),
+    ]
 
 
 @python_2_unicode_compatible  # Python 2

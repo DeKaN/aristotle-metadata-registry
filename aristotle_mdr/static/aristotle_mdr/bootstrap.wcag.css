@@ -13,7 +13,7 @@ caption,
     color: rgb(112, 112, 112);
 }
 
-a {
+.breadcrumb a {
     /* Bootsrap default link color (darkened 16%) */
     color: #0A518E;
 }

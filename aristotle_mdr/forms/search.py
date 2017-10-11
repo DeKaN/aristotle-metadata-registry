@@ -3,6 +3,7 @@ from django import forms
 from django.core.exceptions import ImproperlyConfigured
 from django.apps import apps
 from django.db import models
+from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils import Choices
@@ -19,7 +20,7 @@ from aristotle_mdr.widgets import (
     BootstrapDropdownSelectMultiple, BootstrapDropdownIntelligentDate,
     BootstrapDropdownSelect, BootstrapDateTimePicker
 )
-from aristotle_mdr.utils import fetch_aristotle_settings
+from aristotle_mdr.utils import fetch_aristotle_settings, fetch_metadata_apps
 
 
 QUICK_DATES = Choices(
@@ -107,6 +108,16 @@ def first_letter(j):
     return j[0]
 
 
+def get_permission_sqs(*args, **kwargs):
+    from django.conf import settings
+    psqs_kls = getattr(settings, 'ARISTOTLE_PERMISSION_SEARCH_CLASS', None)
+    if psqs_kls is None:
+        psqs_kls = PermissionSearchQuerySet
+    else:
+        psqs_kls = import_string(psqs_kls)
+    return psqs_kls(*args, **kwargs)
+
+
 class EmptyPermissionSearchQuerySet(EmptySearchQuerySet):
     # Just like a Haystack EmptySearchQuerySet, this behaves like a PermissionsSearchQuerySet
     # But returns nothing all the time.
@@ -191,12 +202,10 @@ class TokenSearchForm(FacetedSearchForm):
                 elif opt == "type":
                     # we'll allow these through and assume they meant content type
                     from django.conf import settings
-                    aristotle_apps = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', [])
-                    aristotle_apps += ["aristotle_mdr"]
 
                     from django.contrib.contenttypes.models import ContentType
                     arg = arg.lower().replace('_', '').replace('-', '')
-                    mods = ContentType.objects.filter(app_label__in=aristotle_apps).all()
+                    mods = ContentType.objects.filter(app_label__in=fetch_metadata_apps()).all()
                     for i in mods:
                         if hasattr(i.model_class(), 'get_verbose_name'):
                             model_short_code = "".join(
@@ -237,6 +246,9 @@ class TokenSearchForm(FacetedSearchForm):
 
         if self.load_all:
             sqs = sqs.load_all()
+
+        # Only show models that are in apps that are enabled
+        sqs = sqs.filter(django_ct_app_label__in=fetch_metadata_apps())
 
         return sqs
 
@@ -335,7 +347,7 @@ class PermissionSearchForm(TokenSearchForm):
 
     def __init__(self, *args, **kwargs):
         if 'searchqueryset' not in kwargs.keys() or kwargs['searchqueryset'] is None:
-            kwargs['searchqueryset'] = PermissionSearchQuerySet()
+            kwargs['searchqueryset'] = get_permission_sqs()
         if not issubclass(type(kwargs['searchqueryset']), PermissionSearchQuerySet):
             raise ImproperlyConfigured("Aristotle Search Queryset connection must be a subclass of PermissionSearchQuerySet")
         super(PermissionSearchForm, self).__init__(*args, **kwargs)
@@ -343,7 +355,10 @@ class PermissionSearchForm(TokenSearchForm):
         from haystack.forms import SearchForm, FacetedSearchForm, model_choices
 
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.all()]
-        self.fields['models'].choices = model_choices()
+        self.fields['models'].choices = [
+            m for m in model_choices()
+            if m[0].split('.', 1)[0] in fetch_metadata_apps()
+        ]
 
     def get_models(self):
         """Return an alphabetical list of model classes in the index."""

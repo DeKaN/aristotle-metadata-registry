@@ -26,7 +26,7 @@ from aristotle_mdr import perms
 from aristotle_mdr.utils import cache_per_item_user, url_slugify_concept
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings
+from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
 from aristotle_mdr.views.utils import generate_visibility_matrix
 
 from haystack.views import FacetedSearchView
@@ -224,32 +224,6 @@ def toggleFavourite(request, iid):
     return redirect(url_slugify_concept(item))
 
 
-def registrationauthority(request, iid, *args, **kwargs):
-    if iid is None:
-        return redirect(reverse("aristotle_mdr:all_registration_authorities"))
-    item = get_object_or_404(MDR.RegistrationAuthority, pk=iid).item
-
-    return render(request, item.template, {'item': item.item})
-
-
-def organization(request, iid, *args, **kwargs):
-    if iid is None:
-        return redirect(reverse("aristotle_mdr:all_organizations"))
-    item = get_object_or_404(MDR.Organization, pk=iid).item
-
-    return render(request, item.template, {'item': item.item})
-
-
-def all_registration_authorities(request):
-    ras = MDR.RegistrationAuthority.objects.order_by('name')
-    return render(request, "aristotle_mdr/organization/all_registration_authorities.html", {'registrationAuthorities': ras})
-
-
-def all_organizations(request):
-    orgs = MDR.Organization.objects.order_by('name')
-    return render(request, "aristotle_mdr/organization/all_organizations.html", {'organization': orgs})
-
-
 # Actions
 
 
@@ -371,21 +345,11 @@ def extensions(request):
             content.append(app)
 
     content = list(set(content))
-    aristotle_downloads = getattr(settings, 'ARISTOTLE_DOWNLOADS', [])
-    downloads=dict()
+    aristotle_downloads = fetch_aristotle_downloaders()
+    downloads=[]
     if aristotle_downloads:
         for download in aristotle_downloads:
-            app_label = download[3]
-            app_details = downloads.get(
-                app_label,
-                {'app': apps.get_app_config(app_label), 'downloads': []}
-            )
-            try:
-                app_details['about_url'] = reverse('%s:about' % app_label)
-            except:
-                pass  # if there is no about URL, thats ok.
-            app_details['downloads'].append(download)
-            downloads[app_label]=app_details
+            downloads.append(download())
 
     return render(
         request,

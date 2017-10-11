@@ -1,0 +1,66 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+{% load i18n %}
+
+{% block collapse-link %}
+    <i class="fa fa-users fa-fw"></i> All Registration Authorities </a>
+{% endblock %}
+
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
+{% endblock %}
+
+{% block page %}
+<h1>{% block title %}{{ item.name }}{% endblock %}</h1>
+
+    <section id="workgroups">
+        <a class="btn btn-default" href="{% url 'aristotle:registrationauthority_edit' item.pk %}">Edit</a>
+        
+    <p>
+        The following list gives a description of the context of the 11179-6 status
+        levels according to this Registration Authority.
+    </p>
+    <dl class="status_definitions">
+        {% for visiblity,descriptions in item.statusDescriptions %}
+            <dt>
+                {{ visiblity|title }}
+
+                {% if visiblity == "unlocked" %}
+                <i class="fa fa-unlock"></i>
+                {% elif visiblity == "locked" %}
+                <i class="fa fa-lock"></i>
+                {% elif visiblity == "public" %}
+                <i class="fa fa-eye"></i>
+                {% else %}
+                <i class="fa fa-bug"></i>
+                {% endif %}
+            </dt>
+            <dd>
+            <dl>
+                {% for val,state_name,text in descriptions %}
+                <dt id='state_{{ val }}'>{{ state_name }}</dt>
+                <dd>
+                {% if text %}
+                    {{ text | linebreaks }}
+                {% else %}
+                    <em>No description given</em>
+                {% endif %}
+                </dd>
+                {% endfor %}
+            </dl>
+            </dd>
+        {% endfor %}
+    </dl>
+
+    <h2>Managers</h2>
+    <ul>
+        { % for
+        
+    </ul>
+
+    <h2>Registrars</h2>
+    <ul>
+        
+    </ul>
+        
+</section>
+{% endblock %}

@@ -2,8 +2,8 @@
 {% load static from staticfiles %}
 
 <!doctype html>
-<html lang="en">
-   <head>
+<html lang="en" style="height: 100%;">
+   <head >
       <meta http-equiv="content-type" content="text/html; charset=UTF-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=IE8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,7 +30,9 @@
     {% endblock %}
    </head>
 
-   <body>
+   <body style="height: 100%;display: flex;
+    flex-direction: column;">
+
    {% block header %}
     {% include 'aristotle_mdr/header.html' %}
    {% endblock %}
@@ -46,7 +48,7 @@
         </div>
         </div>
         {% endif %}
-   <div id='content' class="container">
+   <div id='content' class="container" style="flex-grow: 1;">
         {% block content %}
         {% endblock %}
     </div>

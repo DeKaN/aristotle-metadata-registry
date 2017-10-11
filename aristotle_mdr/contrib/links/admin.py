@@ -1,8 +1,6 @@
 from django.db.models import Q
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 from django.contrib.admin.filters import RelatedFieldListFilter
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _

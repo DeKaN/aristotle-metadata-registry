@@ -66,10 +66,10 @@
         {% endif %}
     </div>
     {% endif %}
-    {% if 'aristotle_mdr.contrib.slots'|is_installed_app %}
+    {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
         {% include "aristotle_mdr/slots/slots_display.html" %}
     {% endif %}
-    {% if 'aristotle_mdr.contrib.links'|is_installed_app %}
+    {% if 'aristotle_mdr.contrib.links'|is_active_module %}
         {% include "aristotle_mdr/links/links_display.html" %}
     {% endif %}
     <h2>Related content</h2>

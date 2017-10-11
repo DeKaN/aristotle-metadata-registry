@@ -3,7 +3,7 @@ from django.test import TestCase
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 import aristotle_mdr.tests.utils as utils
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 
 from django.test.utils import setup_test_environment
@@ -14,9 +14,9 @@ class PostingAndCommentingAtObjectLevel(TestCase):
     def setUp(self):
         self.wg1 = models.Workgroup.objects.create(name="Test WG 1")
         self.wg2 = models.Workgroup.objects.create(name="Test WG 2")
-        self.viewer1 = User.objects.create_user('vicky','','viewer') # viewer 1 always posts
-        self.viewer2 = User.objects.create_user('viewer2','','viewer')
-        self.manager = User.objects.create_user('mandy','','manger')
+        self.viewer1 = get_user_model().objects.create_user('vicky','','viewer') # viewer 1 always posts
+        self.viewer2 = get_user_model().objects.create_user('viewer2','','viewer')
+        self.manager = get_user_model().objects.create_user('mandy','','manger')
         self.wg1.giveRoleToUser('viewer',self.viewer1)
         self.wg1.giveRoleToUser('viewer',self.viewer2)
         self.wg1.giveRoleToUser('manager',self.manager)
@@ -71,8 +71,8 @@ class PostingAndCommentingAtObjectLevel(TestCase):
 class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
     def setUp(self):
         super(WorkgroupMembersCanMakePostsAndComments, self).setUp()
-        self.viewer2 = User.objects.create_user('viewer2','','viewer') # not in any workgroup
-        self.viewer3 = User.objects.create_user('viewer3','','viewer') # not in our "primary testing workgroup" (self.wg1)
+        self.viewer2 = get_user_model().objects.create_user('viewer2','','viewer') # not in any workgroup
+        self.viewer3 = get_user_model().objects.create_user('viewer3','','viewer') # not in our "primary testing workgroup" (self.wg1)
         self.wg1.giveRoleToUser('viewer',self.viewer3)
         self.wg2 = models.Workgroup.objects.create(name="Test WG 2")
 
@@ -429,8 +429,8 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
 class ViewDiscussionPostPage(utils.LoggedInViewPages,TestCase):
     def setUp(self):
         super(ViewDiscussionPostPage, self).setUp()
-        self.viewer2 = User.objects.create_user('viewer2','','viewer') # not in any workgroup
-        self.viewer3 = User.objects.create_user('viewer3','','viewer') # not in our "primary testing workgroup" (self.wg1)
+        self.viewer2 = get_user_model().objects.create_user('viewer2','','viewer') # not in any workgroup
+        self.viewer3 = get_user_model().objects.create_user('viewer3','','viewer') # not in our "primary testing workgroup" (self.wg1)
         self.wg2.giveRoleToUser('viewer',self.viewer3)
 
     def test_member_can_see_posts(self):

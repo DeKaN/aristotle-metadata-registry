@@ -18,7 +18,10 @@ from django.utils.decorators import method_decorator
 import reversion
 
 from aristotle_mdr.perms import user_can_view, user_can_edit, user_can_change_status
-from aristotle_mdr.utils import cache_per_item_user, concept_to_clone_dict, concept_to_dict, construct_change_message, url_slugify_concept
+from aristotle_mdr.utils import (
+    cache_per_item_user, concept_to_clone_dict, concept_to_dict,
+    construct_change_message, url_slugify_concept, is_active_module
+)
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 
@@ -64,8 +67,8 @@ class EditItemView(PermissionFormView):
 
     def __init__(self, *args, **kwargs):
         super(EditItemView, self).__init__(*args, **kwargs)
-        self.slots_active = 'aristotle_mdr.contrib.slots' in settings.INSTALLED_APPS
-        self.identifiers_active = 'aristotle_mdr.contrib.identifiers' in settings.INSTALLED_APPS
+        self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
+        self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
 
     def get_form_class(self):
         return MDRForms.wizards.subclassed_edit_modelform(self.model)

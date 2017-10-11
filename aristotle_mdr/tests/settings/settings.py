@@ -1,5 +1,6 @@
 import os
 import sys
+import dj_database_url
 from aristotle_mdr.required_settings import *
 
 BASE = os.path.join(os.path.dirname(os.path.dirname(__file__)),'..')
@@ -28,26 +29,27 @@ else:
 
 skip_migrations = (
     "ARISTOTLE_DEV_SKIP_MIGRATIONS" in os.environ or
-    os.environ.get('DB') in ['mssql']
+    os.environ.get('DATABASE_URL', "").startswith('mssql')
 )
 
-if os.environ.get('DB') == 'sqlite':
-    print("Running %s test-suite with SQLite" % ci_runner)
-    from aristotle_mdr.tests.settings.templates.db.sqlite import DATABASES
-elif os.environ.get('DB') == 'postgres':
-    print("Running %s test-suite with POSTGRESQL" % ci_runner)
-    from aristotle_mdr.tests.settings.templates.db.postgres import DATABASES
-elif os.environ.get('DB') == 'mariadb':
-    print("Running %s test-suite with MariaDB" % ci_runner)
-    skip_migrations = True
-    from aristotle_mdr.tests.settings.templates.db.mariadb import DATABASES
-elif os.environ.get('DB') == 'mssql':
-    print("Running %s test-suite with MSSQL" % ci_runner)
-    skip_migrations = True  # Sadly, this may not be possible until after migration 0018
-    from aristotle_mdr.tests.settings.templates.db.mssql import DATABASES
-elif os.environ.get('TOXDIR'):
-    print("Running %s test-suite with tox SQLite" % ci_runner)
-    from aristotle_mdr.tests.settings.tox import DATABASES
+
+print("Running test-suite with connection string %s" % os.environ.get('DATABASE_URL'))
+
+if skip_migrations:  # pragma: no cover
+    print("Skipping migrations")
+    class DisableMigrations(object):
+    
+        def __contains__(self, item):
+            return True
+    
+        def __getitem__(self, item):
+            return "notmigrations"
+    
+    MIGRATION_MODULES = DisableMigrations()
+
+db_from_env = dj_database_url.config(conn_max_age=500, default='sqlite:////tmp/db.db')
+
+DATABASES = {'default': db_from_env}
 
 if os.environ.get('SEARCH') == 'whoosh':
     print("Running %s test-suite with whoosh" % ci_runner)
@@ -73,18 +75,6 @@ else:
     print("Aristotle specific variant")
     from aristotle_mdr.tests.settings.templates.search.whoosh import HAYSTACK_CONNECTIONS
 
-if skip_migrations:  # pragma: no cover
-    print("Skipping migrations")
-    class DisableMigrations(object):
-    
-        def __contains__(self, item):
-            return True
-    
-        def __getitem__(self, item):
-            return "notmigrations"
-    
-    MIGRATION_MODULES = DisableMigrations()
-
 
 INSTALLED_APPS = (
     # The good stuff
@@ -102,17 +92,18 @@ PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',
 )
 
+ARISTOTLE_SETTINGS = ARISTOTLE_SETTINGS.copy()
+
 ARISTOTLE_SETTINGS['SEPARATORS']['DataElementConcept'] = '--'
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] + ['extension_test', 'aristotle_mdr_links']
-ARISTOTLE_DOWNLOADS = ARISTOTLE_DOWNLOADS + [
-    ('txt', 'Text', 'fa-file-pdf-o', 'text_download_test'),
+ARISTOTLE_SETTINGS['DOWNLOADERS'] = ARISTOTLE_SETTINGS['DOWNLOADERS'] + [
+    'text_download_test.downloader.TestTextDownloader'
 ]
-ARISTOTLE_SETTINGS['BULK_ACTIONS'].update({
-    'quick_pdf_download':'aristotle_mdr.forms.bulk_actions.QuickPDFDownloadForm',
-    'delete': 'bulk_actions_test.actions.StaffDeleteActionForm',
-    'incomplete': 'bulk_actions_test.actions.IncompleteActionForm',
-    'add_slots': 'aristotle_mdr.contrib.slots.forms.BulkAssignSlotsForm',
-})
+ARISTOTLE_SETTINGS['BULK_ACTIONS'] = ARISTOTLE_SETTINGS['BULK_ACTIONS'] + [
+    'bulk_actions_test.actions.StaffDeleteActionForm',
+    'bulk_actions_test.actions.IncompleteActionForm',
+    'aristotle_mdr.contrib.slots.forms.BulkAssignSlotsForm',
+]
 ROOT_URLCONF = 'extension_test.urls'
 
 # disable

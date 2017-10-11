@@ -1,0 +1,11 @@
+- model: aristotle_mdr_help.concepthelp
+  fields:
+    app_label: extension_test
+    concept_type: question
+    language: en
+    brief: A question
+    offical_definition: >
+        A direction to request information
+    official_reference: None
+    official_link:
+    body: None

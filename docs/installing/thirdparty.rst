@@ -40,8 +40,8 @@ as without search a registry is quite useless. However you can change some setti
   The alternative recommended option is ``aristotle_mdr.signals.AristotleSignalProcessor``, which  only monitors changes to metadata items.
   **Read the warnings below for why you probably only want to use these options.**
 
-Warnings about Haystack:
-++++++++++++++++++++++++
+Warnings about Haystack
++++++++++++++++++++++++
 * Always make sure ``haystack`` is included **once and only once** in ``INSTALLED_APPS``,
   otherwise your installation will throw errors.
 * Make sure ``haystack`` is included in ``INSTALLED_APPS`` *before* ``aristotle_mdr``.
@@ -50,8 +50,8 @@ Warnings about Haystack:
   **Switching this for another processor may expose private information** through search results,
   *but will not allow unauthorised users to access the complete item*.
 
-LESS Compilation:
------------------
+LESS Compilation
+----------------
 
 Aristotle-MDR includes a number of uncompiled LESS files that need to be compiled by
 django-static-precompiler. By default Aristotle-MDR uses the Python-based ``lesscpy``

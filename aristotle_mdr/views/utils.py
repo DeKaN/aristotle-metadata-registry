@@ -1,3 +1,4 @@
+from braces.views import PermissionRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -34,16 +35,17 @@ def paginated_list(request, items, template, extra_context={}):
 
     page = request.GET.get('page')
     try:
-        items = paginator.page(page)
+        paged_items = paginator.page(page)
     except PageNotAnInteger:
         # If page is not an integer, deliver first page.
-        items = paginator.page(1)
+        paged_items = paginator.page(1)
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
-        items = paginator.page(paginator.num_pages)
+        paged_items = paginator.page(paginator.num_pages)
     context = {
+        'object_list': items,
         'sort': sort_by,
-        'page': items,
+        'page': paged_items,
         }
     context.update(extra_context)
     return render(request, template, context)
@@ -124,6 +126,59 @@ def paginated_workgroup_list(request, workgroups, template, extra_context={}):
     return render(request, template, context)
 
 
+paginate_registration_authority_sort_opts = {
+    "name": "name",
+    "users": ("user_count", lambda qs: qs.annotate(user_count=Count('registrars') + Count('managers'))),
+}
+
+
+@login_required
+def paginated_registration_authority_list(request, ras, template, extra_context={}):
+    sort_by=request.GET.get('sort', "name_desc")
+    try:
+        sorter, direction = sort_by.split('_')
+        if sorter not in paginate_registration_authority_sort_opts.keys():
+            sorter="name"
+            sort_by = "name_desc"
+        direction = {'asc': '', 'desc': '-'}.get(direction, '')
+    except:
+        sorter, direction = 'name', ''
+
+    opts = paginate_registration_authority_sort_opts.get(sorter)
+    qs = ras
+
+    try:
+        sort_field, extra = opts
+        qs = extra(qs)
+    except:
+        sort_field = opts
+
+    qs = qs.order_by(direction + sort_field)
+    qs = qs.annotate(user_count=Count('registrars') + Count('managers'))
+    paginator = Paginator(
+        qs,
+        request.GET.get('pp', 20)  # per page
+    )
+
+    page = request.GET.get('page')
+    try:
+        items = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        items = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        items = paginator.page(paginator.num_pages)
+    context = {
+        'sort': sort_by,
+        'page': items,
+        }
+    f = qs.first()
+
+    context.update(extra_context)
+    return render(request, template, context)
+
+
 def get_concept_redirect_or_404(get_item_perm, request, iid, objtype=None):
     if objtype is None:
         from aristotle_mdr.models import _concept
@@ -175,3 +230,19 @@ def generate_visibility_matrix(user):
                 ra_matrix['states'][s] = "hidden"
         matrix[ra.id] = ra_matrix
     return matrix
+
+
+class ObjectLevelPermissionRequiredMixin(PermissionRequiredMixin):
+    def check_permissions(self, request):
+        """
+        Returns whether or not the user has permissions
+        """
+        perms = self.get_permission_required(request)
+        has_permission = False
+        if hasattr(self, 'object') and self.object is not None:
+            has_permission = request.user.has_perm(self.get_permission_required(request), self.object)
+        elif hasattr(self, 'get_object') and callable(self.get_object):
+            has_permission = request.user.has_perm(self.get_permission_required(request), self.get_object())
+        else:
+            has_permission = request.user.has_perm(self.get_permission_required(request))
+        return has_permission

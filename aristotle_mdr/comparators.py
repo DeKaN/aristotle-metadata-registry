@@ -55,7 +55,6 @@ class ValueDomainComparator(Comparator):
             'same_items': change_info['same_items'] + same_items_added,
             'same_values': zip(same_meanings_added, same_meanings_removed)
         })
-        print(list(zip(same_meanings_added, same_meanings_removed)))
 
         context = {"change_info": change_info}
         return render_to_string("aristotle_mdr/actions/compare/valuedomain_valueset.html", context)

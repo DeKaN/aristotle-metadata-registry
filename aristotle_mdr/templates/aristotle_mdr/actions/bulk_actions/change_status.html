@@ -4,7 +4,7 @@
 {% block content %}
 {{ form.media }}
 <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{next}}">{% csrf_token %}
-    <input type="hidden" name="bulkaction" value="change_state"/>
+    <input type="hidden" name="bulkaction" value="{{bulk_action_title}}"/>
     <div class="modal-body">
         {% if item and not request.is_ajax %}
         <ol class="breadcrumb">

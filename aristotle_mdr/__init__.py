@@ -3,8 +3,8 @@ default_app_config = 'aristotle_mdr.apps.AristotleMDRConfig'
 
 __version_info__ = {
     'major': 1,
-    'minor': 5,
-    'micro': 7,
+    'minor': 6,
+    'micro': 0,
     'releaselevel': 'final',
     'serial': 0
 }

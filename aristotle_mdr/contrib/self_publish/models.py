@@ -1,7 +1,7 @@
 from django.apps import apps
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
@@ -24,7 +24,7 @@ class PublicationRecord(TimeStampedModel):
         default=VISIBILITY.public,
         help_text=_('Specify who can see this item.')
     )
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     concept = ConceptOneToOneField(MDR._concept, related_name='publicationrecord')
     publication_date = models.DateField(
         default=now,

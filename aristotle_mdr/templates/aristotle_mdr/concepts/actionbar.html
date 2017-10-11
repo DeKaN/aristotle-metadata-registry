@@ -36,7 +36,7 @@
             <i class="fa fa-fw fa-sitemap"></i> {% trans 'Check component states'%}
         </a></li>
         {% endif %}
-        {% if 'aristotle_mdr.contrib.links'|is_installed_app %}
+        {% if 'aristotle_mdr.contrib.links'|is_active_module %}
             {% include "aristotle_mdr_links/actions/add_link_action.html" %}
         {% endif %}
       </ul>

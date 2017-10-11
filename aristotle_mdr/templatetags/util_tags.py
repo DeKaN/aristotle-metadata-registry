@@ -24,3 +24,9 @@ def visible_count(model, user):
 @register.filter
 def izip(a, b):
     return zip(a, b)
+
+
+@register.filter
+def register_queryset(qs):
+    from aristotle_mdr.utils.cached_querysets import register_queryset
+    return register_queryset(qs)

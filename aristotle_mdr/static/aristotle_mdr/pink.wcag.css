@@ -36,10 +36,6 @@ nav.main.navbar a.btn:hover {
     color:white;
 }
 
-body footer.footer {
-    background-color: rgb(51,51,51);
-}
-
 .extra.footer {
     margin-top:0px;
 }
@@ -53,11 +49,12 @@ body>.navbar {
 }
 
 body>#content {
-    padding-top:20px;
 }
 
 body>footer.footer {
+    background-color: rgb(51,51,51);
     margin-top:0px;
+    padding:5px 5px 15px;
 }
 
 @media (max-width:600px)  {
@@ -71,6 +68,6 @@ body>footer.footer {
     }
 }
 
-body .navbar-inverse .navbar-nav a:hover {
+body .navbar-inverse .navbar-nav>li>a:hover {
     background-color: #5f8f8e;
 }

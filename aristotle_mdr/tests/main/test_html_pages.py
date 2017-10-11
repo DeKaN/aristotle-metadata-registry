@@ -336,7 +336,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertEqual(response.status_code,200)
         updated_item = utils.model_to_dict_with_change_time(response.context['item'])
         updated_item['workgroup'] = str(self.wg_other.pk)
-        # print updated_item
+
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
         self.assertEqual(response.status_code,200)
 
@@ -345,11 +345,11 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertTrue('Select a valid choice.' in form.errors['workgroup'][0])
 
         self.wg_other.submitters.add(self.editor)
-        # print self.editor, models.Property.objects.visible(self.editor), [i.pk for i in models.Property.objects.visible(self.editor)], updated_item
+
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
-        # print response
+
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
-        # print response
+
         self.assertEqual(response.status_code,302)
         updated_item['workgroup'] = str(self.wg2.pk)
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
@@ -473,27 +473,6 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         # Make sure the right item was save and our original hasn't been altered.
         self.item1 = self.itemType.objects.get(id=self.item1.id) # Stupid cache
         self.assertTrue('cloned' not in self.item1.name)
-
-    def test_su_can_download_pdf(self):
-        self.login_superuser()
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
-        self.assertEqual(response.status_code,200)
-
-    def test_editor_can_download_pdf(self):
-        self.login_editor()
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
-        self.assertEqual(response.status_code,403)
-
-    def test_viewer_can_download_pdf(self):
-        self.login_viewer()
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
-        self.assertEqual(response.status_code,403)
 
     def test_viewer_cannot_view_supersede_page(self):
         self.login_viewer()
@@ -870,6 +849,8 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         for sub_item in self.item1.registry_cascade_items:
             if sub_item is not None:
                 self.assertEqual(sub_item.statuses.count(),0)
+            else:
+                pass
 
         response = self.client.post(
             reverse('aristotle:changeStatus',args=[self.item1.id]),
@@ -1210,10 +1191,10 @@ class DataElementConceptViewPage(LoggedInViewConceptPages, TestCase):
 
         self.assertFalse(self.prop.can_view(self.regular))
         self.assertFalse(different_prop.can_view(self.regular))
-        # print updated_item
+
         response = self.client.post(reverse('aristotle:edit_item',args=[self.regular_item.id]), updated_item)
         self.regular_item = self.itemType.objects.get(pk=self.regular_item.pk)
-        # print self.regular_item.property
+
         self.assertEqual(response.status_code,200)
         self.assertTrue('not one of the available choices' in response.context['form'].errors['property'][0])
         self.assertFalse(self.regular_item.name == updated_name)

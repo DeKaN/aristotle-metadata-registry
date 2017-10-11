@@ -1,16 +1,26 @@
-from braces.views import LoginRequiredMixin
-from django.contrib.auth.models import User
+from braces.views import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.template.defaultfilters import slugify
-from django.views.generic import DetailView, ListView, RedirectView, FormView
+from django.views.generic import (
+    CreateView, DetailView, FormView, ListView, RedirectView, UpdateView
+)
+
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_in_workgroup, user_is_workgroup_manager
-from aristotle_mdr.views.utils import workgroup_item_statuses, paginate_sort_opts
+from aristotle_mdr.views.utils import (
+    paginated_list,
+    paginate_sort_opts,
+    paginated_workgroup_list,
+    workgroup_item_statuses,
+    ObjectLevelPermissionRequiredMixin
+)
 
 
 class WorkgroupContextMixin(object):
@@ -110,7 +120,7 @@ class RemoveRoleView(LoginRequiredMixin, WorkgroupContextMixin, RedirectView):
         userid = self.kwargs.get('userid')
         self.workgroup = get_object_or_404(MDR.Workgroup, pk=iid)
         self.check_manager_permission()
-        user = User.objects.filter(id=userid).first()
+        user = get_user_model().objects.filter(id=userid).first()
         if user:
             self.workgroup.removeRoleFromUser(role, user)
         return super(RemoveRoleView, self).get_redirect_url(self.workgroup.pk)
@@ -177,3 +187,47 @@ class LeaveView(LoginRequiredMixin, WorkgroupContextMixin, DetailView):
     def post(self, request, *args, **kwargs):
         self.get_object().removeUser(request.user)
         return HttpResponseRedirect(reverse("aristotle:userHome"))
+
+
+class CreateWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = MDR.Workgroup
+    template_name = "aristotle_mdr/user/workgroups/add.html"
+    fields = ['name', 'definition']
+    permission_required = "aristotle_mdr.add_workgroup"
+    raise_exception = True
+    redirect_unauthenticated_users = True
+
+
+class ListWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = MDR.Workgroup
+    template_name = "aristotle_mdr/user/workgroups/list_all.html"
+    permission_required = "aristotle_mdr.is_registry_administrator"
+    raise_exception = True
+    redirect_unauthenticated_users = True
+
+    def dispatch(self, request, *args, **kwargs):
+        super(ListWorkgroup, self).dispatch(request, *args, **kwargs)
+        workgroups = MDR.Workgroup.objects.all()
+
+        text_filter = request.GET.get('filter', "")
+        if text_filter:
+            workgroups = workgroups.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
+        context = {'filter': text_filter}
+        return paginated_workgroup_list(request, workgroups, self.template_name, context)
+
+
+class EditWorkgroup(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView):
+    model = MDR.Workgroup
+    template_name = "aristotle_mdr/user/workgroups/edit.html"
+    permission_required = "aristotle_mdr.change_workgroup"
+    raise_exception = True
+    redirect_unauthenticated_users = True
+    object_level_permissions = True
+
+    fields = [
+        'name',
+        'definition',
+    ]
+
+    pk_url_kwarg = 'iid'
+    context_object_name = "item"

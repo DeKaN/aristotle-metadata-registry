@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 
@@ -96,7 +96,7 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
                 'email': new_email,
             })
         self.assertEqual(response.status_code,302)
-        self.viewer = User.objects.get(pk=self.viewer.pk)
+        self.viewer = get_user_model().objects.get(pk=self.viewer.pk)
         self.assertEqual(self.viewer.email,new_email)
 
     def test_viewer_can_access_homepages(self):

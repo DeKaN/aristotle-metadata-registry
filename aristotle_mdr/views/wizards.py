@@ -17,7 +17,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
-from aristotle_mdr.utils import fetch_aristotle_settings
+from aristotle_mdr.utils import fetch_aristotle_settings, fetch_metadata_apps
 
 from formtools.wizard.views import SessionWizardView
 from reversion import revisions as reversion
@@ -41,7 +41,7 @@ def create_item(request, app_label=None, model_name=None):
 
     mod = None
     if app_label is None:
-        models = ContentType.objects.filter(model=model_name)
+        models = ContentType.objects.filter(app_label__in=fetch_metadata_apps()).filter(model=model_name)
         if models.count() == 0:
             raise Http404  # TODO: Throw better, more descriptive error
         elif models.count() == 1:
@@ -51,7 +51,7 @@ def create_item(request, app_label=None, model_name=None):
             return render(request, "aristotle_mdr/ambiguous_create_request.html", {'models': models})
     else:
         try:
-            mod = ContentType.objects.get(app_label=app_label, model=model_name).model_class()
+            mod = ContentType.objects.filter(app_label__in=fetch_metadata_apps()).get(app_label=app_label, model=model_name).model_class()
         except ObjectDoesNotExist:
             raise Http404  # TODO: Throw better, more descriptive error
 
@@ -177,7 +177,7 @@ class ConceptWizard(PermissionWizard):
             return self.similar_items
         self.search_terms = self.get_cleaned_data_for_step('initial')
 
-        from aristotle_mdr.forms.search import PermissionSearchQuerySet as PSQS
+        from aristotle_mdr.forms.search import get_permission_sqs as PSQS
         if model is None:
             model = self.model
 
@@ -254,7 +254,7 @@ class MultiStepAristotleWizard(PermissionWizard):
         Looks for items of a given item type with the given search terms
     """
     def find_similar(self, name, definition, model=None):
-        from aristotle_mdr.forms.search import PermissionSearchQuerySet as PSQS
+        from aristotle_mdr.forms.search import get_permission_sqs as PSQS
         if model is None:
             model = self.model
         if not hasattr(self, "similar_items"):

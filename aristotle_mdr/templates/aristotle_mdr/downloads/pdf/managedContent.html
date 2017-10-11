@@ -60,8 +60,10 @@
     </div>
     {% endfor %}
 {% endif %}
-{% if item.slots.count > 0 %}
-    {% include "aristotle_mdr/slots/pdf/slots_display.html" %}
+{% if "aristotle_mdr.contrib.slots"|is_active_module %}
+    {% if item.slots.count > 0 %}
+        {% include "aristotle_mdr/slots/pdf/slots_display.html" %}
+    {% endif %}
 {% endif %}
 </section>
 

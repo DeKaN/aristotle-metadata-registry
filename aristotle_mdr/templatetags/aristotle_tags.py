@@ -22,6 +22,7 @@ from django.utils.html import mark_safe
 
 from aristotle_mdr import perms
 import aristotle_mdr.models as MDR
+from aristotle_mdr.utils import fetch_metadata_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
 
 register = template.Library()
 
@@ -45,11 +46,6 @@ def can_alter_post(user, post):
 @register.filter
 def is_in(item, iterable):
     return item in iterable
-
-
-@register.filter
-def is_installed_app(app_name):
-    return app_name in settings.INSTALLED_APPS
 
 
 @register.filter
@@ -160,7 +156,7 @@ def public_standards(regAuth, itemType="aristotle_mdr._concept"):
         standard_states = [MDR.STATES.standard, MDR.STATES.preferred]
         return [
             (i, i.statuses.filter(registrationAuthority=regAuth, state__in=standard_states).first())
-            for i in ContentType.objects.get(app_label=app_label, model=model_name).model_class().objects.filter(statuses__registrationAuthority=regAuth, statuses__state__in=standard_states).public()
+            for i in ContentType.objects.filter(app_label__in=fetch_metadata_apps()).get(app_label=app_label, model=model_name).model_class().objects.filter(statuses__registrationAuthority=regAuth, statuses__state__in=standard_states).public()
         ]
     except:
         return []
@@ -300,7 +296,7 @@ def downloadMenu(item):
     """
     from django.template.loader import get_template
     from django.template import Context
-    downloadOpts = getattr(settings, 'ARISTOTLE_DOWNLOADS', "")
+    downloadOpts = fetch_aristotle_downloaders()
     from aristotle_mdr.utils import get_download_template_path_for_item
     from aristotle_mdr.utils.downloads import get_download_module
 
@@ -308,31 +304,31 @@ def downloadMenu(item):
     app_label = item._meta.app_label
     model_name = item._meta.model_name
     for d in downloadOpts:
-        download_type = d[0]
-        module_name = d[3]
-        downloader = get_download_module(module_name)
-        item_register = getattr(downloader, 'item_register', {})
+        download_type = d.download_type
+        # module_name = d[3]
+        # downloader = get_download_module(module_name)
+        item_register = d.metadata_register
 
-        dl = item_register.get(download_type, {})
-        if type(dl) is not str:
-            if dl.get(app_label, []) == '__all__':
+        if type(item_register) is not str:
+            if item_register.get(app_label, []) == '__all__':
                 downloadsForItem.append(d)
-            elif model_name in dl.get(app_label, []):
+            elif model_name in item_register.get(app_label, []):
                 downloadsForItem.append(d)
         else:
-            if dl == '__all__':
+            if item_register == '__all__':
                 downloadsForItem.append(d)
-            elif dl == '__template__':
+            elif item_register == '__template__':
                 try:
                     get_template(get_download_template_path_for_item(item, download_type))
                     downloadsForItem.append(d)
                 except template.TemplateDoesNotExist:
                     pass  # This is ok.
                 except:
-                    pass  # Something very bad has happened in the template.
-    return get_template("aristotle_mdr/helpers/downloadMenu.html").render(
+                    raise  # pass  # Something very bad has happened in the template.
+    return get_template(
+        "aristotle_mdr/helpers/downloadMenu.html").render(
         Context({'item': item, 'download_options': downloadsForItem, })
-        )
+    )
 
 
 @register.simple_tag
@@ -413,3 +409,9 @@ def visibility_text(item):
     if item._is_public:
         visibility = _("public")
     return visibility
+
+
+@register.filter
+def is_active_module(module_name):
+    from aristotle_mdr.utils.utils import is_active_module
+    return is_active_module(module_name)

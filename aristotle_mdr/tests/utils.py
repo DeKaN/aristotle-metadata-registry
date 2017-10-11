@@ -4,7 +4,7 @@ import random
 import string
 
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
@@ -333,7 +333,7 @@ class ManagedObjectVisibility(object):
 
     def test_registrar_can_view(self):
         # make editor for wg1
-        r1 = User.objects.create_user('reggie', '', 'reg')
+        r1 = get_user_model().objects.create_user('reggie', '', 'reg')
 
         self.assertEqual(perms.user_can_view(r1, self.item), False)
         s = models.Status.objects.create(
@@ -345,19 +345,19 @@ class ManagedObjectVisibility(object):
         self.assertEqual(perms.user_can_view(r1, self.item), False)
         # Caching issue, refresh from DB with correct permissions
         self.ra.giveRoleToUser('registrar', r1)
-        r1 = User.objects.get(pk=r1.pk)
+        r1 = get_user_model().objects.get(pk=r1.pk)
 
         self.assertEqual(perms.user_can_view(r1, self.item), True)
 
     def test_object_submitter_can_view(self):
         # make editor for wg1
         wg1 = models.Workgroup.objects.create(name="Test WG 1")
-        e1 = User.objects.create_user('editor1', '', 'editor1')
+        e1 = get_user_model().objects.create_user('editor1', '', 'editor1')
         wg1.giveRoleToUser('submitter', e1)
 
         # make editor for wg2
         wg2 = models.Workgroup.objects.create(name="Test WG 2")
-        e2 = User.objects.create_user('editor2', '', 'editor2')
+        e2 = get_user_model().objects.create_user('editor2', '', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
 
         #RAFIX wg1.registrationAuthorities.add(self.ra)
@@ -397,17 +397,17 @@ class ManagedObjectVisibility(object):
         self.assertEqual(perms.user_can_view(e2, self.item), True)
 
     def test_object_submitter_can_edit(self):
-        registrar = User.objects.create_user('registrar', '', 'registrar')
+        registrar = get_user_model().objects.create_user('registrar', '', 'registrar')
         self.ra.registrars.add(registrar)
 
         # make editor for wg1
         wg1 = models.Workgroup.objects.create(name="Test WG 1")
-        e1 = User.objects.create_user('editor1', '', 'editor1')
+        e1 = get_user_model().objects.create_user('editor1', '', 'editor1')
         wg1.giveRoleToUser('submitter', e1)
 
         # make editor for wg2
         wg2 = models.Workgroup.objects.create(name="Test WG 2")
-        e2 = User.objects.create_user('editor2', '', 'editor2')
+        e2 = get_user_model().objects.create_user('editor2', '', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
 
         #RAFIX wg1.registrationAuthorities.add(self.ra)
@@ -452,27 +452,30 @@ class LoggedInViewPages(object):
         #RAFIX self.wg1.registrationAuthorities.add(self.ra)
         self.wg1.save()
 
-        self.su = User.objects.create_superuser('super', '', 'user')
-        self.manager = User.objects.create_user('mandy', '', 'manager')
+        self.su = get_user_model().objects.create_superuser('super', '', 'user')
+        self.manager = get_user_model().objects.create_user('mandy', '', 'manager')
         self.manager.is_staff=True
         self.manager.save()
-        self.editor = User.objects.create_user('eddie', '', 'editor')
+        self.editor = get_user_model().objects.create_user('eddie', '', 'editor')
         self.editor.is_staff=True
         self.editor.save()
-        self.viewer = User.objects.create_user('vicky', '', 'viewer')
-        self.registrar = User.objects.create_user('reggie', '', 'registrar')
-        
-        self.regular = User.objects.create_user('regular', '', 'thanks_steve')
+        self.viewer = get_user_model().objects.create_user('vicky', '', 'viewer')
+        self.registrar = get_user_model().objects.create_user('reggie', '', 'registrar')
+        self.ramanager = get_user_model().objects.create_user('rachael', '', 'ramanager')
+
+        self.regular = get_user_model().objects.create_user('regular', '', 'thanks_steve')
 
         self.wg1.submitters.add(self.editor)
         self.wg1.managers.add(self.manager)
         self.wg1.viewers.add(self.viewer)
         self.ra.registrars.add(self.registrar)
+        self.ra.managers.add(self.ramanager)
 
-        self.editor = User.objects.get(pk=self.editor.pk)
-        self.manager = User.objects.get(pk=self.manager.pk)
-        self.viewer = User.objects.get(pk=self.viewer.pk)
-        self.registrar = User.objects.get(pk=self.registrar.pk)
+        self.editor = get_user_model().objects.get(pk=self.editor.pk)
+        self.manager = get_user_model().objects.get(pk=self.manager.pk)
+        self.viewer = get_user_model().objects.get(pk=self.viewer.pk)
+        self.registrar = get_user_model().objects.get(pk=self.registrar.pk)
+        self.ramanager = get_user_model().objects.get(pk=self.ramanager.pk)
 
         self.assertEqual(self.viewer.profile.editable_workgroups.count(), 0)
         self.assertEqual(self.manager.profile.editable_workgroups.count(), 0)
@@ -507,6 +510,12 @@ class LoggedInViewPages(object):
     def login_registrar(self):
         self.logout()
         response = self.client.post(reverse('friendly_login'), {'username': 'reggie', 'password': 'registrar'})
+        self.assertEqual(response.status_code, 302)
+        return response
+
+    def login_ramanager(self):
+        self.logout()
+        response = self.client.post(reverse('friendly_login'), {'username': 'rachael', 'password': 'ramanager'})
         self.assertEqual(response.status_code, 302)
         return response
 

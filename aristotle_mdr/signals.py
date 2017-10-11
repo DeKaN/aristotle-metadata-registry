@@ -2,6 +2,7 @@ from django.dispatch import receiver
 from django.db.models.signals import m2m_changed, post_save, post_delete, pre_delete, pre_save
 # from reversion.signals import post_revision_commit
 import haystack.signals as signals  # .RealtimeSignalProcessor as RealtimeSignalProcessor
+from aristotle_mdr.utils import fetch_metadata_apps
 # Don't import aristotle_mdr.models directly, only pull in whats required,
 #  otherwise Haystack gets into a circular dependancy.
 
@@ -50,8 +51,11 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
     def handle_concept_save(self, sender, instance, **kwargs):
         from aristotle_mdr.models import _concept, aristotleComponent
         if isinstance(instance, _concept) and type(instance) is not _concept:
-            obj = instance.item
-            self.handle_save(obj.__class__, obj, **kwargs)
+            if instance._meta.app_label in fetch_metadata_apps():
+                obj = instance.item
+                self.handle_save(obj.__class__, obj, **kwargs)
+            else:
+                return
 
         # Components should have parents, but lets be kind.
         if issubclass(sender, aristotleComponent) and hasattr(instance, "parentItem"):

@@ -4,20 +4,20 @@
 
 {% block content %}
 <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{next}}">{% csrf_token %}
-    <input type="hidden" name="bulkaction" value="bulk_download"/>
+    <input type="hidden" name="bulkaction" value="{{bulk_action_title}}"/>
     <div class="modal-body">
         <header>This form allows you to download multiple items into a single package.<br>
         Only items that you have permission to view, and items which can be downloaded in the requested format
         will be included.
         </header>
         <div>
-            {{ form.items.label }}
+            <label for="{{form.items.id_for_label}}">{{ form.items.label }}</label>
             {{ form.items }}
         </div>
         <section>
         <div id="workgroup">
             <span>
-                {{ form.title.label }}:
+                <label for="{{form.title.id_for_label}}">{{ form.title.label }}:</label>
                 {{ form.title.errors }}
             </span>
             <span>
@@ -26,7 +26,7 @@
         </div>
         <div id="comments">
             <span>
-                {{ form.download_type.label }}:
+                <label for="{{form.download_type.id_for_label}}">{{ form.download_type.label }}:</label>
                 {{ form.download_type.errors }}
             </span>
             <span>

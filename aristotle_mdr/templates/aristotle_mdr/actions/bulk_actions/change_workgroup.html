@@ -4,7 +4,7 @@
 
 {% block content %}
 <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{next}}">{% csrf_token %}
-    <input type="hidden" name="bulkaction" value="move_workgroup"/>
+    <input type="hidden" name="bulkaction" value="{{ bulk_action_title }}"/>
     <div class="modal-body">
         <header>This form allows you to move items between workgroups.<br>
         Select a workgroup below, and all items you have permission to move will

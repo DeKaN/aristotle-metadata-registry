@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings
+from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_metadata_apps
 from collections import OrderedDict
 
 
@@ -17,8 +17,7 @@ class BrowseApps(TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = super(BrowseApps, self).get_context_data(*args, **kwargs)
 
-        aristotle_apps = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', [])
-        aristotle_apps += ["aristotle_mdr"]
+        aristotle_apps = fetch_metadata_apps()
         out = {}
 
         for m in get_concepts_for_apps(aristotle_apps):
@@ -42,6 +41,8 @@ class AppBrowser(ListView):
     def get_context_data(self, *args, **kwargs):
         # Call the base implementation first to get a context
         context = super(AppBrowser, self).get_context_data(*args, **kwargs)
+        if self.kwargs['app'] not in fetch_metadata_apps():
+            raise Http404
         context['app_label'] = self.kwargs['app']
         context['app'] = apps.get_app_config(self.kwargs['app'])
         return context
@@ -54,6 +55,8 @@ class BrowseModels(AppBrowser):
 
     def get_queryset(self):
         app = self.kwargs['app']
+        if self.kwargs['app'] not in fetch_metadata_apps():
+            raise Http404
         return get_concepts_for_apps([app])
 
 
@@ -63,6 +66,8 @@ class BrowseConcepts(AppBrowser):
 
     @property
     def model(self):
+        if self.kwargs['app'] not in fetch_metadata_apps():
+            raise Http404
         if self._model is None:
             app = self.kwargs['app']
             model = self.kwargs['model']

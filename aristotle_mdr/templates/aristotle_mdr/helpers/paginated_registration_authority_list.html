@@ -1,0 +1,63 @@
+{% load i18n aristotle_tags %}
+<form class="form-inline" action="#" method="get">
+  <div class="form-group">
+    <label for="id_filter">{% trans 'Filter registration authorities by name and description' %}</label>
+    <input id="id_filter" name="filter" class="form-control" value="{{filter}}">
+    <input name="sort" type="hidden" value="{{sort}}">
+  </div>
+  <button type="submit" class="btn btn-default">Fliter</button>
+</form>
+
+{% if page.has_other_pages %}
+Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }} results.
+{% else %}
+Showing {{ page.paginator.count }} results.
+{% endif %}
+<table class="table">
+<thead>
+    <tr>
+        <th>{% trans 'Registration Authority' %}
+            {% if sort == "name_asc" %}
+            <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort-asc"></i></a>
+            {% elif sort == "name_desc" %}
+            <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_asc"><i class="fa fa-sort-desc"></i></a>
+            {% else %}
+            <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort"></i></a>
+            {% endif %}
+        </th>
+        <th>{% trans 'Definition' %}
+        </th>
+        <th>
+        {% if sort == "users_asc" %}
+        <a href="?{% paginator_get request page.number pop='sort' %}&sort=users_desc"><i class="fa fa-sort-asc"></i></a>
+        {% elif sort == "users_desc" %}
+        <a href="?{% paginator_get request page.number pop='sort' %}&sort=users_asc"><i class="fa fa-sort-desc"></i></a>
+        {% else %}
+        <a href="?{% paginator_get request page.number pop='sort' %}&sort=users_desc"><i class="fa fa-sort"></i></a>
+        {% endif %}
+            <i class="fa fa-users" title="{% trans 'Number of members' %}"></i>
+        </th>
+    </tr>
+</thead>
+<tbody>
+    {% for item in page %}
+    <tr>
+        <td>
+            {% if manage %}
+            <a href="{% url 'aristotle:registrationauthority_manage' item.id %}">{{ item.name }}</a>
+            {% else %}
+            <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
+            {% endif %}
+        </td>
+        <td>{{ item.definition|striptags|safe|truncatewords:50 }}</td>
+        <td>{{ item.user_count }}</td>
+        {% if show_all %}
+        {% endif %}
+    </tr>
+    {% endfor %}
+
+</tbody>
+</table>
+
+{% include "aristotle_mdr/helpers/paginator.html" with page=page %}
+

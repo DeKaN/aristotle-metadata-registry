@@ -20,6 +20,7 @@ from aristotle_mdr.perms import (
 )
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.autocomplete import widgets
+from aristotle_mdr.utils import fetch_aristotle_settings, fetch_aristotle_downloaders
 
 
 class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
@@ -121,16 +122,14 @@ class BulkActionForm(UserAwareForm):
     def items_to_change(self):
         if bool(self.cleaned_data.get('all_in_queryset', False)):
             filters = {}
-            for v in self.cleaned_data.get('qs', "").split(','):
-                if 'user' in v:
-                    # if the queryset even contains a user, cut it right off
-                    # otherwise, it could leak data if people tried to alter the query value
-                    k = v.split('user', 1)[0] + 'user'
-                    v = self.user
-                else:
-                    k, v = v.split('=', 1)
-                filters.update({k: v})
-            items = self.queryset.filter(**filters).visible(self.user)
+            from aristotle_mdr.utils.cached_querysets import get_queryset_from_uuid
+            items = get_queryset_from_uuid(self.cleaned_data.get('qs', ""), MDR._concept)
+
+            _slice = {"low": items.query.low_mark, "high": items.query.high_mark}
+            items.query.low_mark = 0
+            items.query.high_mark = None
+            items = items.filter(**filters).visible(self.user)
+            items.query.set_limits(**_slice)
         else:
             items = self.cleaned_data.get('items')
         return items
@@ -423,9 +422,19 @@ class BulkDownloadForm(DownloadActionForm):
         # widget=forms.Textarea
     )
     download_type = forms.ChoiceField(
-        choices=[(setting[0], setting[1]) for setting in getattr(settings, 'ARISTOTLE_DOWNLOADS', [])],
+        choices=[],
         widget=forms.RadioSelect
     )
+
+    def __init__(self, *args, **kwargs):
+        super(BulkDownloadForm, self).__init__(*args, **kwargs)
+        self.fields['download_type'] = forms.ChoiceField(
+            choices=[
+                (d_type.download_type, d_type.label)
+                for d_type in fetch_aristotle_downloaders()
+            ],
+            widget=forms.RadioSelect
+        )
 
     def make_changes(self):
         self.download_type = self.cleaned_data['download_type']

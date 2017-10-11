@@ -16,12 +16,12 @@
     </strong>
 </p>
 <dl>
-<dt>Managers {% if user_is_admin %}<a data-toggle="modal" data-target="#addMember" href="{% url 'aristotle:addWorkgroupMembers' workgroup.id %}?role=Manager" class="inline_action">Add</a>{% endif %}</dt>
+<dt>Managers {% if perms.aristotle_mdr.change_workgroup_memberships %}<a data-toggle="modal" data-target="#addMember" href="{% url 'aristotle:addWorkgroupMembers' workgroup.id %}?role=Manager" class="inline_action">Add</a>{% endif %}</dt>
 <dd class="row">
 <ul class="col-sm-5 col-sm-offset-1">
 {% for member in workgroup.managers.all %}
     <li>{{ member.first_name }} {{ member.last_name }} ({{ member.username }})
-        {% if user_is_admin %}
+        {% if perms.aristotle_mdr.change_workgroup_memberships %}
             <a href="{% url 'aristotle:removeWorkgroupRole' iid=workgroup.id role='Manager' userid=member.id %}" title="Remove from managers."><i class="text-danger fa fa-times"></i></a>
         {% endif %}
     </li>
@@ -33,12 +33,12 @@ conversations and retire a workgroup. They can also create and edit content
 <em>that has been not progressed to a locked state</em>.
 </p>
 </dd>
-<dt>Stewards {% if user_is_admin %}<a data-toggle="modal" data-target="#addMember" href="{% url 'aristotle:addWorkgroupMembers' workgroup.id %}?role=Super-Editor" class="inline_action">Add</a>{% endif %}</dt>
+<dt>Stewards {% if perms.aristotle_mdr.change_workgroup_memberships %}<a data-toggle="modal" data-target="#addMember" href="{% url 'aristotle:addWorkgroupMembers' workgroup.id %}?role=Super-Editor" class="inline_action">Add</a>{% endif %}</dt>
 <dd class="row">
 <ul class="col-sm-5 col-sm-offset-1">
 {% for member in workgroup.stewards.all %}
     <li>{{ member.first_name }} {{ member.last_name }} ({{ member.username }})
-        {% if user_is_admin %}
+        {% if perms.aristotle_mdr.change_workgroup_memberships %}
             <a href="{% url 'aristotle:removeWorkgroupRole' iid=workgroup.id role='Super-Editor' userid=member.id %}" title="Remove from super editors."><i class="text-danger fa fa-times"></i></a>
         {% endif %}
     </li>
@@ -48,12 +48,12 @@ conversations and retire a workgroup. They can also create and edit content
 Stewards are trusted editors that can create and edit content that has been
 progressed to a locked state {#, but cannot edit content that is public . They also have the permissions of submitters #}.</p>
 </dd>
-<dt>Submitters {% if user_is_admin %}<a data-toggle="modal" data-target="#addMember" href="{% url 'aristotle:addWorkgroupMembers' workgroup.id %}?role=Editor" class="inline_action">Add</a>{% endif %}</dt>
+<dt>Submitters {% if perms.aristotle_mdr.change_workgroup_memberships %}<a data-toggle="modal" data-target="#addMember" href="{% url 'aristotle:addWorkgroupMembers' workgroup.id %}?role=Editor" class="inline_action">Add</a>{% endif %}</dt>
 <dd class="row">
 <ul class="col-sm-5 col-sm-offset-1">
 {% for member in workgroup.submitters.all %}
     <li>{{ member.first_name }} {{ member.last_name }} ({{ member.username }})
-        {% if user_is_admin %}
+        {% if perms.aristotle_mdr.change_workgroup_memberships %}
             <a href="{% url 'aristotle:removeWorkgroupRole' iid=workgroup.id role='Editor' userid=member.id %}" title="Remove from editors."><i class="text-danger fa fa-times"></i></a>
         {% endif %}
     </li>
@@ -64,7 +64,7 @@ Submitters can edit content that has not been progressed by a registrar to a loc
 They can view all content in a workgroup and can set the flag that an item is ready for review by a registrar.
 </p>
 </dd>
-<dt>Viewers {% if user_is_admin %}
+<dt>Viewers {% if perms.aristotle_mdr.change_workgroup_memberships %}
     <a  data-toggle="modal" data-target="#addMember"
         href="{% url 'aristotle:addWorkgroupMembers' workgroup.id %}?role=Viewer" class="inline_action">Add
     </a>{% endif %}
@@ -73,7 +73,7 @@ They can view all content in a workgroup and can set the flag that an item is re
 <ul class="col-sm-5 col-sm-offset-1">
 {% for member in workgroup.viewers.all %}
     <li>{{ member.first_name }} {{ member.last_name }} ({{ member.username }})
-        {% if user_is_admin %}
+        {% if perms.aristotle_mdr.change_workgroup_memberships %}
             <a href="/remove/WorkgroupRole/{{ workgroup.id }}/Viewer/{{ member.id }}" title="Remove from viewers."><i class="text-danger fa fa-times"></i></a>
         {% endif %}
     </li>

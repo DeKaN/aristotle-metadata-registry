@@ -1,4 +1,4 @@
-{% load i18n aristotle_tags %}
+{% load i18n aristotle_tags util_tags %}
 
 {% if page.has_other_pages %}
 Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }} results.
@@ -12,7 +12,7 @@ Showing {{ page.paginator.count }} results.
         <th>
             {% if allow_select_all %}
             <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset">
-            <input type="hidden" name="qs" value="{{ select_all_list_queryset_filter }}">
+            <input type="hidden" name="qs" value="{{ object_list|register_queryset }}">
 
             {% endif %}
         </th>

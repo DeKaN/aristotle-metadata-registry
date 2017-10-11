@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase, override_settings
 from django.test.utils import setup_test_environment
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -37,7 +37,7 @@ class TestNotifications(utils.LoggedInViewPages, TestCase):
         )
 
     def test_subscriber_is_notified_of_supersede(self):
-        user1 = User.objects.create_user('subscriber','subscriber')
+        user1 = get_user_model().objects.create_user('subscriber','subscriber')
         user1.profile.favourites.add(self.item1)
         self.assertTrue(user1.profile in self.item1.favourited_by.all())
 
@@ -49,12 +49,12 @@ class TestNotifications(utils.LoggedInViewPages, TestCase):
 
         self.assertTrue(self.item1.superseded_by == self.item2)
         
-        user1 = User.objects.get(pk=user1.pk)
+        user1 = get_user_model().objects.get(pk=user1.pk)
         self.assertEqual(user1.notifications.all().count(), 1)
         self.assertTrue('favourited item has been superseded' in user1.notifications.first().verb )
 
     def test_subscriber_is_notified_of_supersede_via_deprecate_page(self):
-        user1 = User.objects.create_user('subscriber','subscriber')
+        user1 = get_user_model().objects.create_user('subscriber','subscriber')
         user1.profile.favourites.add(self.item1)
         self.assertTrue(user1.profile in self.item1.favourited_by.all())
 
@@ -69,7 +69,7 @@ class TestNotifications(utils.LoggedInViewPages, TestCase):
 
         self.assertTrue(self.item1.superseded_by == self.item2.concept)
         
-        user1 = User.objects.get(pk=user1.pk)
+        user1 = get_user_model().objects.get(pk=user1.pk)
         self.assertEqual(user1.notifications.all().count(), 1)
         self.assertTrue('favourited item has been superseded' in user1.notifications.first().verb )
 

@@ -14,9 +14,7 @@
 <h1>{% block title %}My Roles{% endblock %}</h1>
 
     <div>
-        <p>Below is a list of every Registration Authority you are a registrar in.
-        Clicking on the name of a Registration Authority to go to its
-        home page.
+        <p>Below is a list of every group you are a member off, the roles you have and the actions you can perform in those groups.
         </p>
     </div>
 
@@ -28,16 +26,29 @@
             <th>Description</th>
         </thead>
         <tbody>
-        {% if request.user.is_superuser %}
+        {% if requests.user.is_superuser %}
         <tr>
             <td>
             </td>
             <td>Registry
             </td>
-            <td>Super user
+            <td>Superuser
             </td>
             <td>You have complete access to all registration authorities,
             workgroups and items. You can add new user accounts.
+            </td>
+        </tr>
+        {% endif %}
+        {% if perms.aristotle_mdr.is_registry_administrator %}
+        <tr>
+            <td>
+            </td>
+            <td>Registry
+            </td>
+            <td>Administrator
+            </td>
+            <td>You have access to edit the registry, and add registration authorities,
+            workgroups and users.
             </td>
         </tr>
         {% endif %}

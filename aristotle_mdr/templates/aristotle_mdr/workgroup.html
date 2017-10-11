@@ -22,8 +22,15 @@
 <div class="row">
 
 <aside id="infoBox" class="col-xs-12 col-sm-4 pull-right">
+{% if perms.aristotle_mdr.change_workgroup %}
+    <div>
+    <a href="{% url 'aristotle:workgroup_edit' workgroup.id %}" class="btn btn-default"><i class="fa fa-pencil"></i> {% trans 'Edit details'%}</a>
+    </div>
+{% endif %}
 {% if user in workgroup.members %}
-<a href="{% url 'aristotle:workgroup_leave' workgroup.id %}" class="btn btn-warning"><i class="fa fa-user-times"></i> {% trans 'Leave Workgroup'%}</a>
+    <div>
+    <a href="{% url 'aristotle:workgroup_leave' workgroup.id %}" class="btn btn-warning"><i class="fa fa-user-times"></i> {% trans 'Leave Workgroup'%}</a>
+    </div>
 {% endif %}
 {% if workgroup.archived %}
     <div class="alert alert-warning">

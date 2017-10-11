@@ -135,7 +135,6 @@ class AddLinkWizard(SessionWizardView):
             if role.multiplicity == 1:
                 concepts = [concepts]
             role_concepts.append((role, concepts))
-        print(role_concepts)
         return role_concepts
 
     def get_context_data(self, *args, **kwargs):

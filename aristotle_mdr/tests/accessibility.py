@@ -75,16 +75,21 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
             print()
             print("Testing url for WCAG compliance [%s] " % url, end="", flush=True, file=sys.stderr)
             print('*', end="", flush=True, file=sys.stderr)
-            for media in media_types:
-                response = self.client.get(url, follow=True)
-                self.assertTrue(response.status_code == 200)
-                html = response.content
 
+            response = self.client.get(url, follow=True)
+            self.assertTrue(response.status_code == 200)
+            html = response.content
+
+            total_results = []
+            for media in media_types:
                 results = parade.Parade(
                     level='AA', staticpath=TMP_STATICPATH,
                     skip_these_classes=['sr-only'],
+                    ignore_hidden = True,
                     media_types = media
                 ).validate_document(html)
+                total_results.append(results)
+
                 if len(results['failures']) != 0:  # NOQA - This shouldn't ever happen, so no coverage needed
                     pp = pprint.PrettyPrinter(indent=4)
                     pp.pprint("Failures for '%s' with media rules [%s]" % (url, media))
@@ -94,7 +99,8 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
                 else:
                     print('+', end="", flush=True, file=sys.stderr)
 
-        self.assertTrue(len(results['failures']) == 0)            
+        for results in total_results:
+            self.assertTrue(len(results['failures']) == 0)            
 
 
 class TestStaticPageAccessibility(TestWebPageAccessibilityBase, TestCase):

@@ -26,15 +26,16 @@
 
     {% if download_extensions %}
         <h2>The following download formats are available in this registry</h2>
-        {% for key,ext in download_extensions.items %}
+        {% for ext in download_extensions %}
+        <i class="fa {{ext.icon_class}}"></i>
         <strong>
             {% if ext.about_url %}
                 <a href="{{ ext.about_url }}">{{ ext.app.verbose_name }}</a>
             {% else %}
-                {{ ext.app.verbose_name }}
+                {{ ext.label }}
             {% endif %}
         </strong>
-        <p>{{ ext.app.description | safe}}</p>
+        <p>{{ ext.description | safe}}</p>
         <dl>
         {% for d in ext.downloads %}
             <dt><i class="fa {{d.2}}"></i> {{ d.1 }}</dt>

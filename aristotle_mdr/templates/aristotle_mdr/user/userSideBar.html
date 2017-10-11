@@ -116,7 +116,7 @@
         {% endifequal %}
     </li>
     {% endif %}
-    {% if request.user.is_superuser %}
+    {% if perms.aristotle_mdr.access_aristotle_dashboard %}
     <li class="su_action {% ifequal activeTab "adminTools" %}active{% endifequal %}">
         <a href="{% url 'aristotle:userAdminTools' %}">
         <i class="fa fa-user-md fa-fw"></i> {% trans "Administrator tools" %}
@@ -146,4 +146,3 @@
         {% endwith %}
     {% endfor %}
 </ul>
-

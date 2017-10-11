@@ -1,5 +1,5 @@
 from django.contrib.admin import helpers
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
 from django.test import TestCase
@@ -18,7 +18,7 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
         super(AdminPage, self).setUp()
 
     def test_workgroup_list(self):
-        new_editor = User.objects.create_user('new_eddie','','editor')
+        new_editor = get_user_model().objects.create_user('new_eddie','','editor')
         new_editor.is_staff=True
         new_editor.save()
 
@@ -40,7 +40,7 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
         wg_nw.stewards.add(new_editor)
         wg_aw.stewards.add(new_editor)
 
-        new_editor = User.objects.get(pk=new_editor.pk) # decache
+        new_editor = get_user_model().objects.get(pk=new_editor.pk) # decache
 
         self.assertEqual(new_editor.profile.editable_workgroups.count(),2)
         self.assertTrue(wg_ns in new_editor.profile.editable_workgroups.all())
@@ -102,7 +102,7 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
             }
         )
         self.assertResponseStatusCodeEqual(response,302)
-        new_user = User.objects.get(username='newuser')
+        new_user = get_user_model().objects.get(username='newuser')
         self.assertEqual(new_user.profile.workgroups.count(),1)
         self.assertEqual(new_user.profile.workgroups.first(),self.wg1)
         self.assertEqual(new_user.profile.registrarAuthorities.count(),1)
@@ -128,7 +128,7 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
             }
         )
         self.assertResponseStatusCodeEqual(response,302)
-        new_user = User.objects.get(username='newuser_with_none')
+        new_user = get_user_model().objects.get(username='newuser_with_none')
         self.assertEqual(new_user.profile.workgroups.count(),0)
         self.assertEqual(new_user.profile.registrarAuthorities.count(),0)
         for rel in [new_user.workgroup_manager_in,

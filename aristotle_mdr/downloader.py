@@ -1,11 +1,4 @@
 from aristotle_mdr.utils import get_download_template_path_for_item
-import cgi
-
-try:  # Python 2
-    from cStringIO import StringIO as BytesIO
-except:  # Python 3
-    from io import BytesIO
-
 
 from django.http import HttpResponse, Http404
 # from django.shortcuts import render
@@ -13,62 +6,59 @@ from django.template.loader import select_template
 from django.template import Context
 from django.utils.safestring import mark_safe
 
-import xhtml2pdf.pisa as pisa
 import csv
 from aristotle_mdr.contrib.help.models import ConceptHelp
 
 
-item_register = {
-    'csv': {'aristotle_mdr': ['valuedomain']},
-    'pdf': '__template__'
-}
+class DownloaderBase(object):
+    """
+    Required class properties:
+
+    * description: a description of the downloader type
+    * download_type: the extension or name of the download to support
+    * icon_class: the font-awesome class
+    * metadata_register: can be one of:
+
+      * a dictionary with keys corresponding to django app labels and values as lists of models within that app the downloader supports
+      * the string "__all__" indicating the downloader supports all metadata types
+      * the string "__template__" indicating the downloader supports any metadata type with a matching download template
+    """
+    metadata_register = {}
+    icon_class = ""
+    description = ""
+
+    @classmethod
+    def download(cls, request, item):
+        """
+        This method must be overriden and return the downloadable object as an appropriate django response
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def bulk_download(cls, request, item):
+        """
+        This method must be overriden and return a bulk downloaded set of items as an appropriate django response
+        """
+        raise NotImplementedError
 
 
-def render_to_pdf(template_src, context_dict, debug_as_html=False):
-    # If the request template doesnt exist, we will give a default one.
-    template = select_template([
-        template_src,
-        'aristotle_mdr/downloads/pdf/managedContent.html'
-    ])
-    context = Context(context_dict)
-    html = template.render(context)
+class CSVDownloader(DownloaderBase):
+    download_type = "csv-vd"
+    metadata_register = {'aristotle_mdr': ['valuedomain']}
+    label = "CSV list of values"
+    icon_class = "fa-file-excel-o"
+    description = "CSV downloads for value domain codelists"
 
-    if debug_as_html:
-        return HttpResponse(html)
-    result = BytesIO()
-    pdf = pisa.pisaDocument(
-        BytesIO(html.encode("UTF-8")),
-        result,
-        encoding='UTF-8'
-    )
-    if not pdf.err:
-        return HttpResponse(result.getvalue(), content_type='application/pdf')
-    return HttpResponse('We had some errors<pre>%s</pre>' % cgi.escape(html))
+    @classmethod
+    def bulk_download(cls, request, item):
+        raise NotImplementedError
 
+    @classmethod
+    def download(cls, request, item):
+        """Built in download method"""
+        template = get_download_template_path_for_item(item, cls.download_type)
+        from django.conf import settings
 
-def download(request, download_type, item):
-    """Built in download method"""
-    template = get_download_template_path_for_item(item, download_type)
-    from django.conf import settings
-    page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-    if download_type == "pdf":
-        subItems = [
-            (obj_type, qs.visible(request.user).order_by('name').distinct())
-            for obj_type, qs in item.get_download_items()
-        ]
-        return render_to_pdf(
-            template,
-            {
-                'item': item,
-                'subitems': subItems,
-                'tableOfContents': len(subItems) > 0,
-                'view': request.GET.get('view', '').lower(),
-                'pagesize': request.GET.get('pagesize', page_size),
-                'request': request,
-            }
-        )
-
-    elif download_type == "csv-vd":
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="%s.csv"' % (
             item.name
@@ -118,45 +108,3 @@ def items_for_bulk_download(items, request):
         ).first()
 
     return item_querysets
-
-
-def bulk_download(request, download_type, items, title=None, subtitle=None):
-    """Built in download method"""
-    template = 'aristotle_mdr/downloads/pdf/bulk_download.html'  # %(download_type)
-    from django.conf import settings
-    page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-
-    item_querysets = items_for_bulk_download(items, request)
-
-    if title is None:
-        if request.GET.get('title', None):
-            title = request.GET.get('title')
-        else:
-            title = "Auto-generated document"
-
-    if subtitle is None:
-        if request.GET.get('subtitle', None):
-            subtitle = request.GET.get('subtitle')
-        else:
-            _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
-            subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
-
-    if download_type == "pdf":
-        subItems = []
-
-        debug_as_html = bool(request.GET.get('html', ''))
-
-        return render_to_pdf(
-            template,
-            {
-                'title': title,
-                'subtitle': subtitle,
-                'items': items,
-                'included_items': sorted(
-                    [(k, v) for k, v in item_querysets.items()],
-                    key=lambda k_v: k_v[0]._meta.model_name
-                ),
-                'pagesize': request.GET.get('pagesize', page_size),
-            },
-            debug_as_html=debug_as_html
-        )
